@@ -2,26 +2,26 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Star, Lock, CheckCircle, Play, Zap } from 'lucide-react'
-import { cn, calculateLevel } from '@/lib/utils'
-import type { Lesson, UserProgress } from '@/types'
+import { Clock, Award, Lock, CheckCircle, Play } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { Lesson } from '@/types'
 
 interface LessonCardProps {
   lesson: Lesson
-  progress?: UserProgress
-  userLevel?: number
+  userLevel: number
+  progress?: 'locked' | 'available' | 'in_progress' | 'completed'
   onClick?: () => void
 }
 
-export default function LessonCard({ lesson, progress, userLevel = 1, onClick }: LessonCardProps) {
-  const isCompleted = progress?.status === 'completed'
-  const isInProgress = progress?.status === 'in_progress'
-  const isLocked = lesson.required_tier === 'premium' && userLevel < 10
-  
+export default function LessonCard({ lesson, userLevel, progress = 'available', onClick }: LessonCardProps) {
+  const isLocked = progress === 'locked'
+  const isCompleted = progress === 'completed'
+  const isInProgress = progress === 'in_progress'
+
   const difficultyColors = {
-    beginner: 'text-circuit-success border-circuit-success/30',
-    intermediate: 'text-circuit-warning border-circuit-warning/30',
-    advanced: 'text-circuit-danger border-circuit-danger/30',
+    beginner: 'text-circuit-success border-circuit-success/30 bg-circuit-success/10',
+    intermediate: 'text-circuit-warning border-circuit-warning/30 bg-circuit-warning/10',
+    advanced: 'text-circuit-danger border-circuit-danger/30 bg-circuit-danger/10',
   }
 
   return (
@@ -31,91 +31,80 @@ export default function LessonCard({ lesson, progress, userLevel = 1, onClick }:
       onClick={!isLocked ? onClick : undefined}
       className={cn(
         'relative p-6 rounded-2xl border transition-all cursor-pointer',
-        isCompleted && 'bg-circuit-success/10 border-circuit-success/30',
-        isInProgress && 'bg-circuit-accent/10 border-circuit-accent',
-        !isCompleted && !isInProgress && !isLocked && 'bg-circuit-panel border-white/10 hover:border-circuit-accent/50',
-        isLocked && 'bg-circuit-panel/50 border-white/5 opacity-60 cursor-not-allowed'
+        isLocked
+          ? 'bg-circuit-panel/50 border-white/5 opacity-60 cursor-not-allowed'
+          : isCompleted
+          ? 'bg-circuit-panel border-circuit-success/30'
+          : isInProgress
+          ? 'bg-circuit-panel border-circuit-accent'
+          : 'bg-circuit-panel border-white/10 hover:border-circuit-accent/50'
       )}
     >
       {/* Status Badge */}
-      {isCompleted && (
-        <div className="absolute top-4 right-4 w-8 h-8 bg-circuit-success rounded-full flex items-center justify-center">
-          <CheckCircle className="w-5 h-5 text-black" />
-        </div>
-      )}
-      
-      {isInProgress && (
-        <div className="absolute top-4 right-4 px-3 py-1 bg-circuit-accent/20 border border-circuit-accent/30 rounded-full text-xs font-medium text-circuit-accent">
-          In Progress
-        </div>
-      )}
-
-      {isLocked && (
-        <div className="absolute top-4 right-4 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
-          <Lock className="w-4 h-4 text-gray-400" />
-        </div>
-      )}
-
-      {/* Icon */}
-      <div className={cn(
-        'w-12 h-12 rounded-xl flex items-center justify-center mb-4',
-        isCompleted ? 'bg-circuit-success/20' : 'bg-circuit-accent/20'
-      )}>
-        {isCompleted ? (
-          <Zap className="w-6 h-6 text-circuit-success" />
-        ) : isInProgress ? (
-          <Play className="w-6 h-6 text-circuit-accent fill-current" />
-        ) : (
-          <Zap className="w-6 h-6 text-circuit-accent" />
+      <div className="absolute -top-3 -right-3">
+        {isLocked && (
+          <div className="w-8 h-8 bg-circuit-panel rounded-full flex items-center justify-center border border-white/10">
+            <Lock className="w-4 h-4 text-gray-500" />
+          </div>
+        )}
+        {isCompleted && (
+          <div className="w-8 h-8 bg-circuit-success/20 rounded-full flex items-center justify-center border border-circuit-success/30">
+            <CheckCircle className="w-4 h-4 text-circuit-success" />
+          </div>
+        )}
+        {isInProgress && (
+          <div className="w-8 h-8 bg-circuit-accent/20 rounded-full flex items-center justify-center border border-circuit-accent/30">
+            <Play className="w-4 h-4 text-circuit-accent" />
+          </div>
         )}
       </div>
 
-      {/* Content */}
-      <h3 className="text-lg font-bold text-white mb-2">{lesson.title}</h3>
-      <p className="text-sm text-gray-400 mb-4 line-clamp-2">{lesson.description}</p>
-
-      {/* Meta */}
-      <div className="flex items-center gap-4 text-sm">
-        <span className={cn(
-          'px-2 py-1 border rounded-lg text-xs font-medium',
+      {/* Difficulty Badge */}
+      <span
+        className={cn(
+          'inline-block px-3 py-1 rounded-full text-xs font-medium border',
           difficultyColors[lesson.difficulty]
-        )}>
-          {lesson.difficulty}
-        </span>
-        
-        <div className="flex items-center gap-1 text-gray-500">
+        )}
+      >
+        {lesson.difficulty}
+      </span>
+
+      {/* Content */}
+      <h3 className="mt-3 text-lg font-semibold text-white">{lesson.title}</h3>
+      <p className="mt-1 text-sm text-gray-400 line-clamp-2">{lesson.description}</p>
+
+      {/* Meta Info */}
+      <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+        <div className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
-          <span>{lesson.duration_minutes}m</span>
+          <span>{lesson.duration_minutes} min</span>
         </div>
-        
-        <div className="flex items-center gap-1 text-circuit-warning">
-          <Star className="w-4 h-4" />
-          <span>+{lesson.xp_reward} XP</span>
+        <div className="flex items-center gap-1">
+          <Award className="w-4 h-4 text-circuit-accent" />
+          <span className="text-circuit-accent">+{lesson.xp_reward} XP</span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      {isInProgress && progress && (
+      {/* Progress Bar for In Progress */}
+      {isInProgress && (
         <div className="mt-4">
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-circuit-accent rounded-full transition-all"
-              style={{ width: `${(progress.time_spent_minutes / lesson.duration_minutes) * 100}%` }}
-            />
+          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full w-1/2 bg-circuit-accent rounded-full" />
           </div>
+          <p className="mt-1 text-xs text-circuit-accent">50% complete</p>
         </div>
       )}
 
       {/* Tier Badge */}
       {lesson.required_tier !== 'free' && (
-        <div className="absolute bottom-4 right-4">
-          <span className={cn(
-            'px-2 py-1 rounded-lg text-xs font-bold uppercase',
-            lesson.required_tier === 'pro' 
-              ? 'bg-circuit-purple/20 text-circuit-purple border border-circuit-purple/30'
-              : 'bg-gradient-to-r from-circuit-accent/20 to-circuit-purple/20 text-circuit-accent border border-circuit-accent/30'
-          )}>
-            {lesson.required_tier}
+        <div className="mt-4 pt-4 border-t border-white/5">
+          <span
+            className={cn(
+              'text-xs font-medium',
+              lesson.required_tier === 'pro' ? 'text-circuit-warning' : 'text-circuit-purple'
+            )}
+          >
+            {lesson.required_tier === 'pro' ? 'Pro' : 'Premium'} Plan
           </span>
         </div>
       )}

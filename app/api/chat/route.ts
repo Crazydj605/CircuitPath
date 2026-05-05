@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { chatWithGrok } from '@/lib/grok'
+import { sendMessageToGrok } from '@/lib/grok'
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { messages, context } = await request.json()
+    const { message, context } = await req.json()
 
-    if (!messages || !Array.isArray(messages)) {
+    if (!message) {
       return NextResponse.json(
-        { error: 'Messages array is required' },
+        { error: 'Message is required' },
         { status: 400 }
       )
     }
 
-    const response = await chatWithGrok(messages, context)
+    const response = await sendMessageToGrok(message, context)
 
-    return NextResponse.json({ response })
-  } catch (error: any) {
+    return NextResponse.json(response)
+  } catch (error) {
     console.error('Chat API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to process chat request' },
+      { error: 'Failed to process message' },
       { status: 500 }
     )
   }

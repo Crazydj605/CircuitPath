@@ -1,66 +1,65 @@
 # CircuitPath
 
-A profitable, gamified robotics learning platform with AI tutoring. Built with Next.js, Supabase, Stripe, and Grok AI.
+A profitable robotics learning platform with interactive lessons, AI tutoring, and circuit simulation.
 
 ## Features
 
-- **Interactive Circuit Simulator** - Build and test circuits virtually
-- **AI Tutor (Grok)** - 24/7 personalized robotics tutoring
-- **Gamification** - XP, levels, badges, and streaks
-- **Subscription Plans** - Free, Pro ($9.99/mo), Premium ($19.99/mo)
-- **Progress Tracking** - Comprehensive learning analytics
-- **Structured Lessons** - Better than YouTube tutorials
+- 🤖 **Interactive Circuit Simulator** - Build and test circuits virtually
+- 🧠 **AI Tutor (Grok)** - 24/7 personalized help
+- 🎮 **Gamification** - XP, levels, badges, streaks
+- 💳 **Subscriptions** - Free, Pro ($10/mo or $8/mo yearly), Premium ($24/mo or $22/mo yearly)
+- 📱 **Responsive Design** - Works on all devices
+- ⚡ **Smooth Animations** - Framer Motion powered
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
-- **Animation**: Framer Motion
-- **Backend**: Supabase (PostgreSQL + Auth)
-- **AI**: Grok (X.AI) API
-- **Payments**: Stripe
-- **Deployment**: Vercel
+- Next.js 14 + TypeScript
+- Tailwind CSS
+- Framer Motion
+- Supabase (Auth + Database)
+- Stripe (Payments)
+- Grok AI API
 
 ## Quick Start
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+# Install dependencies
+npm install
 
-2. **Set up environment variables** in `.env.local`:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-   GROK_API_KEY=your_grok_key
-   STRIPE_SECRET_KEY=your_stripe_secret
-   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable
-   ```
+# Run dev server
+npm run dev
 
-3. **Run development server**:
-   ```bash
-   npm run dev
-   ```
+# Open http://localhost:3000
+```
 
-4. **Open** http://localhost:3000
+## Project Structure
 
-## Database Setup (Supabase)
+```
+circuitpath/
+├── app/                 # Next.js app router
+├── components/          # React components
+├── lib/                 # Utilities & API
+├── types/               # TypeScript types
+├── supabase/            # Database schema
+└── public/              # Static assets
+```
 
-Run the SQL in `supabase/schema.sql` to create tables:
-- profiles
-- lessons
-- user_progress
-- subscriptions
+## Environment Variables
 
-## Deployment
+Create `.env.local`:
 
-The app is configured for easy deployment to Vercel with GitHub integration.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+GROK_API_KEY=your_grok_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-## Monetization Strategy
+## Documentation
 
-- **Free Tier**: 5 lessons, basic simulator, limited AI
-- **Pro Tier**: All lessons, unlimited AI, advanced features
-- **Premium Tier**: 1-on-1 mentoring, certification, hardware discounts
+- `SETUP-GUIDE.md` - Complete setup instructions
+- `DEPLOY-VERCEL.md` - Deployment guide
 
 ## License
 
-MIT
+ISC

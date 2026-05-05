@@ -1,9 +1,6 @@
 -- CircuitPath Database Schema
 -- Run this in your Supabase SQL Editor
 
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
-
 -- Profiles table (extends auth.users)
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -96,79 +93,56 @@ CREATE TABLE IF NOT EXISTS ai_chat_history (
 
 -- Row Level Security Policies
 
--- Profiles: Users can read all profiles, but only update their own
+-- Profiles: Users can view all profiles but only update their own
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON profiles;
 CREATE POLICY "Profiles are viewable by everyone" 
     ON profiles FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" 
     ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- User stats: Users can only access their own stats
 ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own stats" ON user_stats;
 CREATE POLICY "Users can view own stats" 
     ON user_stats FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own stats" ON user_stats;
 CREATE POLICY "Users can update own stats" 
-    ON user_stats FOR UPDATE USING (auth.uid() = user_id);
+    ON user_stats FOR ALL USING (auth.uid() = user_id);
 
 -- User progress: Users can only access their own progress
 ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own progress" ON user_progress;
 CREATE POLICY "Users can view own progress" 
     ON user_progress FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own progress" ON user_progress;
 CREATE POLICY "Users can update own progress" 
     ON user_progress FOR ALL USING (auth.uid() = user_id);
 
 -- Lessons: Everyone can view published lessons
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Published lessons are viewable by everyone" ON lessons;
 CREATE POLICY "Published lessons are viewable by everyone" 
     ON lessons FOR SELECT USING (is_published = true);
 
 -- Chat history: Users can only access their own chats
 ALTER TABLE ai_chat_history ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own chat history" ON ai_chat_history;
 CREATE POLICY "Users can view own chat history" 
     ON ai_chat_history FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own chat messages" ON ai_chat_history;
 CREATE POLICY "Users can insert own chat messages" 
-    ON ai_chat_history FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Functions
-
--- Update user stats after lesson completion
-CREATE OR REPLACE FUNCTION update_user_stats_after_completion()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
-        UPDATE user_stats 
-        SET 
-            total_xp = total_xp + NEW.xp_earned,
-            lessons_completed = lessons_completed + 1,
-            total_time_minutes = total_time_minutes + NEW.time_spent_minutes,
-            updated_at = TIMEZONE('utc', NOW())
-        WHERE user_id = NEW.user_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER lesson_completion_trigger
-    AFTER UPDATE ON user_progress
-    FOR EACH ROW
-    EXECUTE FUNCTION update_user_stats_after_completion();
-
--- Calculate user level based on XP
-CREATE OR REPLACE FUNCTION calculate_user_level(user_xp INTEGER)
-RETURNS INTEGER AS $$
-BEGIN
-    RETURN FLOOR(SQRT(user_xp / 100.0)) + 1;
-END;
-$$ LANGUAGE plpgsql;
+    ON ai_chat_history FOR ALL USING (auth.uid() = user_id);
 
 -- Insert sample badges
 INSERT INTO badges (name, description, icon, color, requirement_type, requirement_value) VALUES

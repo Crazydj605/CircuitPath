@@ -1,56 +1,57 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Zap, Menu, X, Crown, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import GamificationBar from './GamificationBar'
+import React, { useState, useEffect } from 'react'
+import { Zap, Menu, X, User, LogOut } from 'lucide-react'
+import { supabase, signOut } from '@/lib/supabase'
 import AuthModal from './AuthModal'
-import type { UserStats } from '@/types'
 
-interface NavbarProps {
-  user?: {
-    email: string
-    name: string
-    subscription_tier: 'free' | 'pro' | 'premium'
-  } | null
-  stats?: UserStats
-  onAuthClick?: () => void
-}
-
-export default function Navbar({ user, stats, onAuthClick }: NavbarProps) {
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
-  const navLinks = [
-    { label: 'Learn', href: '#lessons' },
-    { label: 'Circuits', href: '#circuits' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Community', href: '#community' },
+  const publicNavLinks = [
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Features', href: '/#features' },
   ]
+
+  const appNavLinks = [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Learn', href: '/learn' },
+    { label: 'Community', href: '/community' },
+  ]
+
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
+  }
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-circuit-dark/80 backdrop-blur-xl border-b border-white/5"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0d0d10]/90 backdrop-blur-xl border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <a href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-xl flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white hidden sm:block">
-                CircuitPath
-              </span>
+              <Zap className="w-6 h-6 text-slate-400" />
+              <span className="text-lg font-semibold text-white">CircuitPath</span>
             </a>
 
-            {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
+              {(user ? appNavLinks : publicNavLinks).map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
@@ -61,100 +62,70 @@ export default function Navbar({ user, stats, onAuthClick }: NavbarProps) {
               ))}
             </div>
 
-            {/* Right Section */}
             <div className="flex items-center gap-4">
               {user ? (
-                <>
-                  {/* Stats Bar */}
-                  {stats && (
-                    <div className="hidden lg:block">
-                      <GamificationBar stats={stats} compact />
-                    </div>
-                  )}
-
-                  {/* Upgrade Button */}
-                  {user.subscription_tier === 'free' && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-xl text-white text-sm font-medium"
-                    >
-                      <Crown className="w-4 h-4" />
-                      Upgrade
-                    </motion.button>
-                  )}
-
-                  {/* User Menu */}
-                  <button className="flex items-center gap-2 p-2 hover:bg-white/10 rounded-xl transition-colors">
-                    <div className="w-8 h-8 bg-circuit-accent/20 rounded-lg flex items-center justify-center">
-                      <User className="w-4 h-4 text-circuit-accent" />
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded">
+                    <User className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-white">
+                      {user.email?.split('@')[0]}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-4 h-4" />
                   </button>
-                </>
+                </div>
               ) : (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="px-6 py-2.5 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-xl text-white font-medium"
+                  className="px-5 py-2 bg-white text-[#0a0a0f] rounded text-sm font-medium hover:bg-gray-100 transition-colors"
                 >
                   Get Started
-                </motion.button>
+                </button>
               )}
 
-              {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="md:hidden p-2 hover:bg-white/10 rounded-lg"
               >
-                {isMenuOpen ? (
-                  <X className="w-6 h-6 text-white" />
-                ) : (
-                  <Menu className="w-6 h-6 text-white" />
-                )}
+                {isMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        <motion.div
-          initial={false}
-          animate={{ height: isMenuOpen ? 'auto' : 0, opacity: isMenuOpen ? 1 : 0 }}
-          className="md:hidden overflow-hidden border-t border-white/5"
-        >
-          <div className="px-4 py-4 space-y-4">
-            {navLinks.map((link) => (
+        {isMenuOpen && (
+          <div className="md:hidden px-4 py-4 border-t border-white/5 bg-[#0a0a0f]/95">
+            {(user ? appNavLinks : publicNavLinks).map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition-colors"
+                className="block py-3 text-gray-400 hover:text-white"
               >
                 {link.label}
               </a>
             ))}
-            
-            {!user && (
+            {user && (
               <button
                 onClick={() => {
+                  handleSignOut()
                   setIsMenuOpen(false)
-                  setIsAuthOpen(true)
                 }}
-                className="w-full py-3 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-xl text-white font-medium"
+                className="block w-full text-left py-3 text-red-400"
               >
-                Get Started
+                Sign Out
               </button>
             )}
           </div>
-        </motion.div>
-      </motion.nav>
+        )}
+      </nav>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-      />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </>
   )
 }

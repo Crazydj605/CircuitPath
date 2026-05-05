@@ -2,10 +2,18 @@ export interface User {
   id: string
   email: string
   name: string
-  avatar_url?: string
   subscription_tier: 'free' | 'pro' | 'premium'
+  subscription_status: 'active' | 'inactive' | 'cancelled' | 'past_due'
   created_at: string
-  updated_at: string
+}
+
+export interface UserStats {
+  total_xp: number
+  level: number
+  streak_days: number
+  last_activity_date: string
+  lessons_completed: number
+  total_time_minutes: number
 }
 
 export interface Lesson {
@@ -18,56 +26,8 @@ export interface Lesson {
   xp_reward: number
   required_tier: 'free' | 'pro' | 'premium'
   order_index: number
-  content: LessonContent
-  created_at: string
-}
-
-export interface LessonContent {
-  introduction: string
-  steps: LessonStep[]
-  quiz?: QuizQuestion[]
-  circuit_data?: CircuitData
-}
-
-export interface LessonStep {
-  id: string
-  title: string
-  content: string
-  image_url?: string
-  is_interactive: boolean
-  component_type?: 'circuit-builder' | 'code-editor' | 'simulation'
-}
-
-export interface QuizQuestion {
-  id: string
-  question: string
-  options: string[]
-  correct_answer: number
-  explanation: string
-}
-
-export interface CircuitData {
-  components: CircuitComponent[]
-  connections: CircuitConnection[]
-  goal: string
-  hints: string[]
-}
-
-export interface CircuitComponent {
-  id: string
-  type: 'battery' | 'led' | 'resistor' | 'switch' | 'motor' | 'sensor' | 'wire'
-  x: number
-  y: number
-  rotation: number
-  value?: string
-  is_powered?: boolean
-}
-
-export interface CircuitConnection {
-  from: string
-  to: string
-  from_port: string
-  to_port: string
+  content?: any
+  is_published: boolean
 }
 
 export interface UserProgress {
@@ -82,51 +42,21 @@ export interface UserProgress {
   time_spent_minutes: number
 }
 
-export interface UserStats {
-  total_xp: number
-  level: number
-  streak_days: number
-  last_activity_date: string
-  lessons_completed: number
-  total_time_minutes: number
-  badges: Badge[]
-}
-
 export interface Badge {
   id: string
   name: string
   description: string
   icon: string
   color: string
-  earned_at: string
-}
-
-export interface Achievement {
-  id: string
-  name: string
-  description: string
-  icon: string
-  xp_reward: number
-  requirement_type: 'lessons' | 'streak' | 'xp' | 'circuit_built'
+  requirement_type: string
   requirement_value: number
 }
 
-export interface AiTutorMessage {
+export interface ChatMessage {
   id: string
   user_id: string
   role: 'user' | 'assistant'
   content: string
   context?: string
   created_at: string
-}
-
-export interface SubscriptionPlan {
-  id: string
-  name: string
-  tier: 'free' | 'pro' | 'premium'
-  price_monthly: number
-  price_yearly: number
-  features: string[]
-  stripe_price_id_monthly?: string
-  stripe_price_id_yearly?: string
 }

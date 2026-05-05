@@ -1,0 +1,18 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[context.production.environment]
+  NEXT_PUBLIC_APP_URL = "https://circuitpath.net"
+
+[context.deploy-preview.environment]
+  NEXT_PUBLIC_APP_URL = "https://deploy-preview--circuitpath.netlify.app"
+
+[context.branch-deploy.environment]
+  NEXT_PUBLIC_APP_URL = "https://branch--circuitpath.netlify.app"

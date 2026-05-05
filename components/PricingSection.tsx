@@ -1,27 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Check, Zap, Crown, Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Check } from 'lucide-react'
 
-interface PricingPlan {
-  name: string
-  tier: 'free' | 'pro' | 'premium'
-  price: { monthly: number; yearly: number }
-  description: string
-  features: string[]
-  icon: React.ElementType
-  popular?: boolean
-}
-
-const plans: PricingPlan[] = [
+const plans = [
   {
     name: 'Free',
     tier: 'free',
     price: { monthly: 0, yearly: 0 },
-    description: 'Start your robotics journey',
-    icon: Zap,
+    description: 'Start learning robotics',
     features: [
       '5 beginner lessons',
       'Basic circuit simulator',
@@ -33,16 +20,14 @@ const plans: PricingPlan[] = [
   {
     name: 'Pro',
     tier: 'pro',
-    price: { monthly: 9.99, yearly: 99 },
-    description: 'Unlock your potential',
-    icon: Crown,
+    price: { monthly: 10, yearly: 8 },
+    description: 'For serious learners',
     popular: true,
     features: [
       'All 50+ lessons',
-      'Advanced circuit simulator',
       'Unlimited AI tutoring',
       'Project workspace',
-      'Quiz mode',
+      'Quiz mode & assessments',
       'Priority support',
       'Download resources',
     ],
@@ -50,18 +35,15 @@ const plans: PricingPlan[] = [
   {
     name: 'Premium',
     tier: 'premium',
-    price: { monthly: 19.99, yearly: 199 },
-    description: 'Master robotics',
-    icon: Sparkles,
+    price: { monthly: 24, yearly: 22 },
+    description: 'For professionals',
     features: [
       'Everything in Pro',
-      '1-on-1 AI mentoring',
       'Live workshops',
       'Certification program',
-      'Arduino code export',
       'Hardware discounts',
-      'Early access to new features',
       'Private community',
+      '1-on-1 mentoring',
     ],
   },
 ]
@@ -71,181 +53,106 @@ export default function PricingSection() {
 
   return (
     <section id="pricing" className="py-24 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="inline-block px-4 py-2 bg-circuit-accent/10 border border-circuit-accent/30 rounded-full text-circuit-accent text-sm font-medium mb-4">
-              Pricing Plans
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Choose Your Learning Path
-            </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Invest in your robotics education. All plans include a 14-day free trial.
-            </p>
-          </motion.div>
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Simple, transparent pricing
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
+            Start free and upgrade when you're ready. All plans include a 14-day free trial.
+          </p>
 
-          {/* Billing Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center justify-center gap-4 mt-8"
-          >
+          {/* Toggle */}
+          <div className="inline-flex items-center gap-2 p-1 bg-white/5 rounded-full">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                billingCycle === 'monthly'
-                  ? 'bg-circuit-accent text-white'
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                billingCycle === 'monthly' 
+                  ? 'bg-white text-[#0a0a0f]' 
                   : 'text-gray-400 hover:text-white'
-              )}
+              }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2',
-                billingCycle === 'yearly'
-                  ? 'bg-circuit-accent text-white'
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                billingCycle === 'yearly' 
+                  ? 'bg-white text-[#0a0a0f]' 
                   : 'text-gray-400 hover:text-white'
-              )}
+              }`}
             >
               Yearly
-              <span className="px-2 py-0.5 bg-circuit-success/20 text-circuit-success text-xs rounded-full">
-                Save 20%
+              <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">
+                Save $2/mo
               </span>
             </button>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {plans.map((plan, idx) => (
-            <motion.div
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <div
               key={plan.tier}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className={cn(
-                'relative p-8 rounded-3xl border',
+              className={`relative p-6 rounded-2xl border ${
                 plan.popular
-                  ? 'bg-gradient-to-b from-circuit-accent/20 to-circuit-panel border-circuit-accent'
-                  : 'bg-circuit-panel border-white/10'
-              )}
+                  ? 'bg-white/[0.03] border-cyan-500/30'
+                  : 'bg-white/[0.02] border-white/5'
+              }`}
             >
-              {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-full text-white text-sm font-medium">
+                <div className="absolute -top-3 left-6">
+                  <span className="px-3 py-1 bg-cyan-500 text-white text-xs font-medium rounded-full">
                     Most Popular
                   </span>
                 </div>
               )}
 
-              {/* Plan Icon */}
-              <div
-                className={cn(
-                  'w-14 h-14 rounded-2xl flex items-center justify-center mb-6',
-                  plan.popular
-                    ? 'bg-circuit-accent/20'
-                    : 'bg-white/5'
-                )}
-              >
-                <plan.icon
-                  className={cn(
-                    'w-7 h-7',
-                    plan.popular ? 'text-circuit-accent' : 'text-gray-400'
-                  )}
-                />
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-white mb-1">{plan.name}</h3>
+                <p className="text-sm text-gray-500">{plan.description}</p>
               </div>
 
-              {/* Plan Info */}
-              <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-              <p className="text-gray-400 mb-6">{plan.description}</p>
-
-              {/* Price */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <span className="text-4xl font-bold text-white">
                   ${billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly}
                 </span>
-                <span className="text-gray-400">
-                  /{billingCycle === 'monthly' ? 'month' : 'year'}
-                </span>
+                <span className="text-gray-500">/mo</span>
               </div>
 
-              {/* Features */}
-              <ul className="space-y-4 mb-8">
+              {billingCycle === 'yearly' && plan.tier !== 'free' && (
+                <p className="text-sm text-gray-500 mb-6">
+                  ${plan.price.yearly * 12}/year (save ${(plan.price.monthly - plan.price.yearly) * 12}/year)
+                </p>
+              )}
+
+              <ul className="space-y-3 mb-6">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div className={cn(
-                      'w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-                      plan.popular
-                        ? 'bg-circuit-accent/20'
-                        : 'bg-white/10'
-                    )}>
-                      <Check className={cn(
-                        'w-3 h-3',
-                        plan.popular ? 'text-circuit-accent' : 'text-gray-400'
-                      )} />
-                    </div>
+                    <Check className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                     <span className="text-gray-300 text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* CTA Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  'w-full py-4 rounded-xl font-semibold transition-colors',
+              <button
+                className={`w-full py-3 rounded-full font-medium transition-colors ${
                   plan.tier === 'free'
-                    ? 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
                     : plan.popular
-                    ? 'bg-gradient-to-r from-circuit-accent to-circuit-purple text-white'
-                    : 'bg-circuit-accent/20 text-circuit-accent hover:bg-circuit-accent/30'
-                )}
+                    ? 'bg-white text-[#0a0a0f] hover:bg-gray-100'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
               >
-                {plan.tier === 'free' ? 'Get Started Free' : `Start ${plan.name} Trial`}
-              </motion.button>
-            </motion.div>
+                {plan.tier === 'free' ? 'Get Started Free' : 'Start Free Trial'}
+              </button>
+            </div>
           ))}
         </div>
 
-        {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500"
-        >
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-circuit-success" />
-            <span>14-day free trial</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-circuit-success" />
-            <span>No credit card required</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-circuit-success" />
-            <span>Cancel anytime</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-circuit-success" />
-            <span>Money-back guarantee</span>
-          </div>
-        </motion.div>
+        <p className="text-center text-sm text-gray-500 mt-8">
+          All plans include a 14-day free trial. Cancel anytime.
+        </p>
       </div>
     </section>
   )

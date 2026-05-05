@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 
+const inter = Inter({ subsets: ['latin'] })
+
 export const metadata: Metadata = {
-  title: 'CircuitPath - Learn Robotics Through Play',
-  description: 'Master robotics with interactive lessons, AI tutoring, and hands-on circuit building. Better than YouTube tutorials.',
-  keywords: 'robotics, learn robotics, circuit building, AI tutor, education, STEM',
+  title: 'CircuitPath - Master Robotics',
+  description: 'Interactive robotics learning platform with AI tutoring and circuit simulation',
 }
 
 export default function RootLayout({
@@ -14,14 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      </head>
-      <body className="circuit-bg min-h-screen">
-        {children}
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   )
 }

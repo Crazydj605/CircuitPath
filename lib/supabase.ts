@@ -1,23 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create client with session persistence
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})
 
-export async function signUp(email: string, password: string, name: string) {
+export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        name,
-      },
-    },
   })
-  
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export async function signIn(email: string, password: string) {
@@ -25,28 +25,25 @@ export async function signIn(email: string, password: string) {
     email,
     password,
   })
-  
-  if (error) throw error
-  return data
+  return { data, error }
+}
+
+export async function signInWithGoogle() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
+    },
+  })
+  return { data, error }
 }
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  return { error }
 }
 
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser()
   return user
-}
-
-export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
-  
-  if (error) throw error
-  return data
 }

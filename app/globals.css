@@ -32,15 +32,14 @@ body {
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--circuit-panel);
+  background: var(--circuit-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--circuit-accent), var(--circuit-purple));
+  background: var(--circuit-panel);
   border-radius: 4px;
 }
 
@@ -48,64 +47,32 @@ body {
   background: var(--circuit-accent);
 }
 
-/* Glass morphism */
-.glass {
-  background: rgba(18, 18, 26, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 212, 255, 0.1);
+/* Selection */
+::selection {
+  background: var(--circuit-accent);
+  color: var(--circuit-dark);
 }
 
-/* Circuit grid background */
-.circuit-bg {
-  background-image: 
-    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Glow effects */
 .glow-accent {
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
 .glow-success {
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
 }
 
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Button styles */
-.btn-primary {
-  @apply bg-gradient-to-r from-circuit-accent to-circuit-purple text-white font-semibold px-6 py-3 rounded-xl;
-  @apply hover:opacity-90 transition-all duration-300;
-  @apply shadow-lg shadow-circuit-accent/30;
-}
-
-.btn-secondary {
-  @apply bg-circuit-panel border border-circuit-accent/30 text-white font-semibold px-6 py-3 rounded-xl;
-  @apply hover:border-circuit-accent hover:bg-circuit-accent/10 transition-all duration-300;
-}
-
-/* Card styles */
-.circuit-card {
-  @apply bg-circuit-panel border border-white/10 rounded-2xl p-6;
-  @apply hover:border-circuit-accent/30 transition-all duration-300;
-}
-
-/* Progress bar */
-.progress-bar {
-  @apply h-2 bg-white/10 rounded-full overflow-hidden;
-}
-
-.progress-bar-fill {
-  @apply h-full bg-gradient-to-r from-circuit-accent to-circuit-success rounded-full;
-  transition: width 0.5s ease-out;
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--circuit-accent), var(--circuit-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
