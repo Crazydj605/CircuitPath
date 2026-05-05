@@ -70,12 +70,12 @@ export default function Dashboard() {
 
             <div className="p-4 bg-white border border-slate-200 rounded">
               <p className="text-sm text-slate-500">Current streak</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.current_streak_days ?? 0} days</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.current_streak_days ?? 0} day</p>
             </div>
 
             <div className="p-4 bg-white border border-slate-200 rounded">
               <p className="text-sm text-slate-500">Longest streak</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.longest_streak_days ?? 0} days</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.longest_streak_days ?? 0} day</p>
             </div>
 
             <div className="p-4 bg-white border border-slate-200 rounded">
@@ -87,7 +87,7 @@ export default function Dashboard() {
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
               <div className="rounded border border-slate-200 bg-white p-5">
-                <h2 className="text-xl font-semibold text-slate-900">Resume your learning</h2>
+                <h2 className="text-xl font-semibold text-slate-900">Resume or Start Here!</h2>
                 {recommended ? (
                   <div className="mt-3">
                     <p className="text-sm text-slate-500">Recommended now</p>
@@ -108,7 +108,7 @@ export default function Dashboard() {
               </div>
 
               <div className="rounded border border-slate-200 bg-white p-5">
-                <h2 className="text-lg font-semibold text-slate-900">Today&apos;s small task</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Today&apos;s Challenge🔥</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Complete one checkpoint in your guided lesson. This keeps your streak alive and builds real confidence.
                 </p>
@@ -123,8 +123,8 @@ export default function Dashboard() {
               <div className="rounded border border-slate-200 bg-white p-5">
                 <h3 className="text-sm font-semibold text-slate-900">Streak status</h3>
                 <div className="mt-3 space-y-2 text-sm text-slate-600">
-                  <p className="flex items-center gap-2"><Flame className="h-4 w-4 text-slate-700" /> Current: {streak?.current_streak_days ?? 0} days</p>
-                  <p className="flex items-center gap-2"><Trophy className="h-4 w-4 text-slate-700" /> Best: {streak?.longest_streak_days ?? 0} days</p>
+                  <p className="flex items-center gap-2"><Flame className="h-4 w-4 text-slate-700" /> Current: {streak?.current_streak_days ?? 0} day</p>
+                  <p className="flex items-center gap-2"><Trophy className="h-4 w-4 text-slate-700" /> Best: {streak?.longest_streak_days ?? 0} day</p>
                   <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-700" /> Last activity: {streak?.last_activity_date || 'Not yet'}</p>
                 </div>
               </div>
