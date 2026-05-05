@@ -9,14 +9,14 @@ const config = {
     extend: {
       colors: {
         circuit: {
-          dark: '#0d0d10',
-          panel: '#16161a',
-          accent: '#5c7cfa',
-          secondary: '#868e96',
-          success: '#40c057',
-          warning: '#fab005',
-          danger: '#fa5252',
-          muted: '#343a40',
+          dark: '#0f172a',
+          panel: '#f8fafc',
+          accent: '#334155',
+          secondary: '#64748b',
+          success: '#16a34a',
+          warning: '#ca8a04',
+          danger: '#dc2626',
+          muted: '#e2e8f0',
         }
       },
       borderRadius: {

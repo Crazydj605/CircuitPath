@@ -151,161 +151,81 @@ const COMPARISON_FEATURES = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0d0d10]">
+    <main className="min-h-screen bg-slate-50">
       <Navbar />
 
-      {/* Hero Section - Engineering Professional */}
-      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-800/20 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded mb-6">
-                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
-                <span className="text-sm text-slate-400">50,000+ engineers and hobbyists</span>
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-4">
+        <div className="relative max-w-5xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+              Learn Electronics & Robotics Through{' '}
+              <span className="text-slate-600">Hands-On Projects</span>
+            </h1>
+
+            <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Structured curriculum, curated component kits, and a supportive community of builders.
+              From your first circuit to autonomous robots.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <a
+                href="#pricing"
+                className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors"
+              >
+                Start Free Trial
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </a>
+              <a
+                href="#kits"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-700 border border-slate-300 rounded font-medium hover:bg-slate-50 transition-colors"
+              >
+                View Component Kits
+              </a>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-slate-500 justify-center">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                <span>14-day free trial</span>
               </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
-                Learn Electronics & Robotics Through{' '}
-                <span className="text-slate-300">Hands-On Projects</span>
-              </h1>
-
-              <p className="text-lg text-slate-400 mb-8 max-w-lg leading-relaxed">
-                Structured curriculum, curated component kits, and a supportive community of builders. 
-                From your first circuit to autonomous robots.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <a
-                  href="#pricing"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-900 rounded font-medium hover:bg-slate-200 transition-colors"
-                >
-                  Start Free Trial
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </a>
-                <a
-                  href="#kits"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-slate-800 text-slate-200 border border-slate-700 rounded font-medium hover:bg-slate-700 transition-colors"
-                >
-                  View Component Kits
-                </a>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                <span>Cancel anytime</span>
               </div>
-
-              <div className="flex items-center gap-6 text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                  <span>14-day free trial</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                  <span>Cancel anytime</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                  <span>No hardware required</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                <span>No hardware required</span>
               </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="relative"
-            >
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-white font-semibold">Learning Progress</h3>
-                  <span className="text-sm text-slate-400">Level 3 of 16</span>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-white">Foundation Circuits</span>
-                        <span className="text-sm text-gray-500">100%</span>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-400 rounded-full" style={{ width: '100%' }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-slate-600/20 rounded-lg flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-white">Circuit Design</span>
-                        <span className="text-sm text-gray-500">65%</span>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-400 rounded-full" style={{ width: '65%' }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500 text-sm">03</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-gray-400">Arduino Programming</span>
-                        <span className="text-sm text-gray-500">Locked</span>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-400">Current Streak</p>
-                      <p className="text-xl font-bold text-white">12 days</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Next Badge</p>
-                      <p className="text-sm text-white">Circuit Master</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">XP Earned</p>
-                      <p className="text-xl font-bold text-slate-400">2,840</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 px-4 border-y border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat, idx) => (
+      {/* How It Works */}
+      <section className="py-16 px-4 border-y border-slate-200 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: '01', title: 'Learn', desc: 'Follow structured lessons with video and interactive content' },
+              { step: '02', title: 'Build', desc: 'Apply concepts with hands-on projects using real components' },
+              { step: '03', title: 'Master', desc: 'Track progress, earn certificates, and advance your skills' },
+            ].map((item, idx) => (
               <motion.div
-                key={stat.label}
+                key={item.step}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 className="text-center"
               >
-                <div className="text-4xl md:text-5xl font-bold text-white mb-2">{stat.value}</div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
+                <div className="text-3xl font-bold text-slate-300 mb-3">{item.step}</div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-slate-500">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -313,14 +233,14 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4">
+      <section id="features" className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Everything you need to become a robotics engineer
             </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              From interactive lessons to AI tutoring, we've built the complete learning experience.
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+              From interactive lessons to AI tutoring, we have built the complete learning experience.
             </p>
           </div>
 
@@ -332,52 +252,13 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05 }}
-                className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] transition-colors group"
+                className="p-6 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100 transition-colors"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-slate-700/30 to-slate-600/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="w-6 h-6 text-slate-400" />
+                <div className="w-12 h-12 bg-slate-200 rounded flex items-center justify-center mb-4">
+                  <feature.icon className="w-6 h-6 text-slate-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 px-4 bg-white/[0.01]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Loved by learners worldwide
-            </h2>
-            <p className="text-gray-400">
-              See what our community has to say about their experience.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((testimonial, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl"
-              >
-                <Quote className="w-8 h-8 text-slate-500/30 mb-4" />
-                <p className="text-gray-300 mb-6 leading-relaxed">"{testimonial.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {testimonial.author[0]}
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">{testimonial.author}</div>
-                    <div className="text-sm text-gray-500">{testimonial.role} · {testimonial.company}</div>
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -385,13 +266,13 @@ export default function Home() {
       </section>
 
       {/* Learning Journey Section */}
-      <section className="py-24 px-4 bg-white/[0.01]">
+      <section className="py-24 px-4 bg-slate-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Your learning journey, mapped out
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+            <p className="text-slate-500 max-w-2xl mx-auto">
               Progress through structured milestones with clear goals, hands-on projects, and measurable skill development.
             </p>
           </div>
@@ -406,28 +287,26 @@ export default function Home() {
                 transition={{ delay: idx * 0.1 }}
                 className="relative"
               >
-                {/* Connector line */}
                 {idx < LEARNING_MILESTONES.length - 1 && (
-                  <div className="hidden lg:block absolute top-6 left-[calc(100%+12px)] w-[calc(100%-24px)] h-px bg-gradient-to-r from-slate-500/30 to-transparent -z-10 pointer-events-none" />
+                  <div className="hidden lg:block absolute top-6 left-[calc(100%+12px)] w-[calc(100%-24px)] h-px bg-slate-300" />
                 )}
                 
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/[0.04] transition-colors">
+                <div className="bg-white border border-slate-200 rounded p-6 hover:shadow-sm transition-shadow">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-slate-400 font-medium">{milestone.duration}</span>
-                    <span className="text-sm text-gray-500">{milestone.xp}</span>
+                    <span className="text-sm text-slate-500 font-medium">{milestone.duration}</span>
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-white mb-2">{milestone.level}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{milestone.level}</h3>
                   
                   <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-2">Capstone Project:</p>
-                    <p className="text-sm text-white">{milestone.project}</p>
+                    <p className="text-sm text-slate-500 mb-2">Capstone Project:</p>
+                    <p className="text-sm text-slate-900 font-medium">{milestone.project}</p>
                   </div>
                   
                   <div className="space-y-2">
                     {milestone.skills.map((skill) => (
-                      <div key={skill} className="flex items-center gap-2 text-sm text-gray-400">
-                        <div className="w-1.5 h-1.5 bg-slate-600/50 rounded-full" />
+                      <div key={skill} className="flex items-center gap-2 text-sm text-slate-600">
+                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
                         {skill}
                       </div>
                     ))}
@@ -438,7 +317,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 text-center">
-            <a href="#kits" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-300 transition-colors">
+            <a href="#kits" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors">
               See recommended component kits for each level
               <ArrowRight className="w-4 h-4" />
             </a>
@@ -446,78 +325,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Badges & Gamification Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Earn achievements as you grow
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Track your progress, maintain learning streaks, and unlock badges that demonstrate your expertise.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {BADGES.map((badge, idx) => {
-              const colorClasses = {
-                amber: "bg-amber-500/10 border-amber-500/20 text-amber-400",
-                green: "bg-green-500/10 border-slate-500/30 text-green-400",
-                purple: "bg-purple-500/10 border-purple-500/20 text-purple-400",
-                blue: "bg-blue-500/10 border-blue-500/20 text-blue-400",
-                red: "bg-red-500/10 border-red-500/20 text-red-400",
-                cyan: "bg-slate-600/10 border-slate-500/20 text-slate-400",
-              }
-              const colorClass = colorClasses[badge.color as keyof typeof colorClasses]
-              
-              return (
-                <motion.div
-                  key={badge.name}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.05 }}
-                  className={`p-4 rounded-xl border text-center ${colorClass}`}
-                >
-                  <badge.icon className="w-8 h-8 mx-auto mb-3" />
-                  <h4 className="font-medium text-sm mb-1">{badge.name}</h4>
-                  <p className="text-xs opacity-80">{badge.description}</p>
-                </motion.div>
-              )
-            })}
-          </div>
-
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
-              <div className="text-3xl font-bold text-white mb-1">1,247</div>
-              <div className="text-sm text-gray-500">Active streaks this week</div>
-            </div>
-            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
-              <div className="text-3xl font-bold text-white mb-1">156</div>
-              <div className="text-sm text-gray-500">Community challenges completed</div>
-            </div>
-            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
-              <div className="text-3xl font-bold text-white mb-1">2,341</div>
-              <div className="text-sm text-gray-500">Projects shared this month</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Recommended Kits Section */}
-      <section id="kits" className="py-24 px-4 bg-white/[0.01]">
+      <section id="kits" className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
                 Recommended component kits
               </h2>
-              <p className="text-gray-400 max-w-2xl">
-                Curated kits with everything you need for each learning level. 
+              <p className="text-slate-500 max-w-2xl">
+                Curated kits with everything you need for each learning level.
                 Purchase confidently knowing each component is lesson-tested.
               </p>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               Affiliate links support our content
             </p>
           </div>
@@ -530,23 +351,23 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors"
+                className="bg-white border border-slate-200 rounded overflow-hidden hover:shadow-sm transition-shadow"
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-slate-400 font-medium">{kit.level} Level</span>
-                    <span className="text-lg font-bold text-white">{kit.price}</span>
+                    <span className="text-sm text-slate-500 font-medium">{kit.level} Level</span>
+                    <span className="text-lg font-bold text-slate-900">{kit.price}</span>
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-white mb-2">{kit.name}</h3>
-                  <p className="text-sm text-gray-400 mb-4">{kit.description}</p>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{kit.name}</h3>
+                  <p className="text-sm text-slate-500 mb-4">{kit.description}</p>
                   
                   <div className="mb-6">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Kit includes:</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Kit includes:</p>
                     <ul className="space-y-1">
                       {kit.essentials.map((item) => (
-                        <li key={item} className="text-sm text-gray-400 flex items-center gap-2">
-                          <div className="w-1 h-1 bg-slate-600/50 rounded-full" />
+                        <li key={item} className="text-sm text-slate-600 flex items-center gap-2">
+                          <div className="w-1 h-1 bg-slate-400 rounded-full" />
                           {item}
                         </li>
                       ))}
@@ -557,7 +378,7 @@ export default function Home() {
                     href={kit.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-full gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-medium hover:bg-white/10 transition-colors"
+                    className="inline-flex items-center justify-center w-full gap-2 px-4 py-3 bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
                   >
                     <ShoppingCart className="w-4 h-4" />
                     View on Amazon
@@ -568,46 +389,46 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-8 p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-gray-400">
-              <span className="text-white font-medium">Pro tip:</span> Start with the Foundation kit and upgrade as you progress. 
-              Many components are reusable across levels, so you won't need to repurchase basics.
+          <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded flex items-start gap-3">
+            <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-slate-600">
+              <span className="font-medium text-slate-900">Pro tip:</span> Start with the Foundation kit and upgrade as you progress.
+              Many components are reusable across levels, so you will not need to repurchase basics.
             </p>
           </div>
         </div>
       </section>
 
       {/* Comparison Section */}
-      <section className="py-24 px-4">
+      <section className="py-24 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Why learners choose CircuitPath over YouTube
             </h2>
-            <p className="text-gray-400">
+            <p className="text-slate-500">
               Structured learning with accountability and community support beats scattered tutorials.
             </p>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-3 gap-4 p-4 border-b border-white/5 bg-white/[0.02]">
-              <div className="text-sm text-gray-500">Feature</div>
-              <div className="text-center text-sm text-white font-medium">CircuitPath</div>
-              <div className="text-center text-sm text-gray-500">YouTube</div>
+          <div className="bg-white border border-slate-200 rounded overflow-hidden">
+            <div className="grid grid-cols-3 gap-4 p-4 border-b border-slate-200 bg-slate-50">
+              <div className="text-sm text-slate-500 font-medium">Feature</div>
+              <div className="text-center text-sm text-slate-900 font-medium">CircuitPath</div>
+              <div className="text-center text-sm text-slate-500">YouTube</div>
             </div>
             
             {COMPARISON_FEATURES.map((item, idx) => (
               <div 
                 key={item.name}
-                className="grid grid-cols-3 gap-4 p-4 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors"
+                className="grid grid-cols-3 gap-4 p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
               >
-                <div className="text-gray-300 text-sm">{item.name}</div>
+                <div className="text-slate-700 text-sm">{item.name}</div>
                 <div className="flex justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-slate-400" />
+                  <CheckCircle2 className="w-5 h-5 text-slate-600" />
                 </div>
                 <div className="flex justify-center">
-                  <span className="text-gray-600 text-sm">—</span>
+                  <span className="text-slate-400 text-sm">—</span>
                 </div>
               </div>
             ))}
@@ -619,91 +440,47 @@ export default function Home() {
       <PricingSection />
 
       {/* CTA Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center p-8 md:p-12 bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-3xl">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Start building with confidence
-              </h2>
-              <p className="text-gray-400 mb-6">
-                Whether you're pursuing a career in robotics or exploring electronics as a hobby, 
-                CircuitPath provides the structured path and community support you need to succeed.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href="#pricing"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#0a0a0f] rounded-full font-medium hover:bg-gray-100 transition-colors"
-                >
-                  Begin Free Trial
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </a>
-                <a
-                  href="#kits"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white/5 text-white border border-white/10 rounded-full font-medium hover:bg-white/10 transition-colors"
-                >
-                  Browse Component Kits
-                </a>
-              </div>
-              <p className="mt-4 text-sm text-gray-500">
-                Free for 14 days. No credit card required to start.
-              </p>
+      <section className="py-24 px-4 bg-slate-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Start building with confidence
+            </h2>
+            <p className="text-slate-500 mb-8 max-w-2xl mx-auto">
+              Whether you are pursuing a career in robotics or exploring electronics as a hobby,
+              CircuitPath provides the structured path and community support you need to succeed.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#pricing"
+                className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors"
+              >
+                Begin Free Trial
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </a>
+              <a
+                href="#kits"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-700 border border-slate-300 rounded font-medium hover:bg-slate-50 transition-colors"
+              >
+                Browse Component Kits
+              </a>
             </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <div className="w-10 h-10 bg-slate-600/10 rounded-lg flex items-center justify-center shrink-0">
-                  <BookOpen className="w-5 h-5 text-slate-400" />
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-1">Structured Curriculum</h4>
-                  <p className="text-sm text-gray-400">Progressive lessons from basics to advanced concepts</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Trophy className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-1">Achievement System</h4>
-                  <p className="text-sm text-gray-400">Earn badges and certificates as you master skills</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Users className="w-5 h-5 text-purple-400" />
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-1">Builder Community</h4>
-                  <p className="text-sm text-gray-400">Connect with peers, share projects, get feedback</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center shrink-0">
-                  <ShoppingCart className="w-5 h-5 text-amber-400" />
-                </div>
-                <div>
-                  <h4 className="text-white font-medium mb-1">Curated Kits</h4>
-                  <p className="text-sm text-gray-400">Lesson-tested components with direct Amazon links</p>
-                </div>
-              </div>
-            </div>
+            <p className="mt-4 text-sm text-slate-400">
+              Free for 14 days. No credit card required to start.
+            </p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-white/5">
+      <footer className="py-12 px-4 border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-slate-400" />
-              <span className="text-xl font-bold text-white">CircuitPath</span>
+              <Zap className="w-6 h-6 text-slate-600" />
+              <span className="text-xl font-bold text-slate-900">CircuitPath</span>
             </div>
-            <p className="text-gray-500 text-sm">© 2024 CircuitPath. All rights reserved.</p>
+            <p className="text-slate-400 text-sm">© 2024 CircuitPath. All rights reserved.</p>
           </div>
         </div>
       </footer>
