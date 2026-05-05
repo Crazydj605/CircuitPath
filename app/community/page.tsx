@@ -75,22 +75,22 @@ export default function Community() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0f]">
+    <main className="min-h-screen bg-slate-50">
       <Navbar />
       
       <div className="pt-24 pb-12 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Community</h1>
-            <p className="text-gray-400">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Community</h1>
+            <p className="text-slate-500">
               Connect with fellow learners, share projects, and join challenges
             </p>
           </div>
@@ -100,33 +100,33 @@ export default function Community() {
             <div className="lg:col-span-2 space-y-6">
               {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                  <Users className="w-5 h-5 text-cyan-400 mx-auto mb-2" />
-                  <p className="text-xl font-bold text-white">50K+</p>
-                  <p className="text-xs text-gray-500">Learners</p>
+                <div className="p-4 bg-white border border-slate-200 rounded text-center">
+                  <Users className="w-5 h-5 text-slate-600 mx-auto mb-2" />
+                  <p className="text-xl font-bold text-slate-900">50K+</p>
+                  <p className="text-xs text-slate-500">Learners</p>
                 </div>
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                  <MessageSquare className="w-5 h-5 text-purple-400 mx-auto mb-2" />
-                  <p className="text-xl font-bold text-white">2.3K</p>
-                  <p className="text-xs text-gray-500">Posts Today</p>
+                <div className="p-4 bg-white border border-slate-200 rounded text-center">
+                  <MessageSquare className="w-5 h-5 text-slate-600 mx-auto mb-2" />
+                  <p className="text-xl font-bold text-slate-900">2.3K</p>
+                  <p className="text-xs text-slate-500">Posts Today</p>
                 </div>
-                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                  <Trophy className="w-5 h-5 text-amber-400 mx-auto mb-2" />
-                  <p className="text-xl font-bold text-white">156</p>
-                  <p className="text-xs text-gray-500">Active Challenges</p>
+                <div className="p-4 bg-white border border-slate-200 rounded text-center">
+                  <Trophy className="w-5 h-5 text-slate-600 mx-auto mb-2" />
+                  <p className="text-xl font-bold text-slate-900">156</p>
+                  <p className="text-xs text-slate-500">Active Challenges</p>
                 </div>
               </div>
 
               {/* Create Post */}
-              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="p-4 bg-white border border-slate-200 rounded">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-800 font-semibold">
                     {user?.email?.[0].toUpperCase() || 'Y'}
                   </div>
                   <input
                     type="text"
                     placeholder="Share your progress or ask a question..."
-                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    className="flex-1 bg-white border border-slate-300 rounded px-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
                   />
                 </div>
               </div>
@@ -139,31 +139,31 @@ export default function Community() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="p-4 bg-white/[0.02] border border-white/5 rounded-xl"
+                    className="p-4 bg-white border border-slate-200 rounded"
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white font-semibold">
+                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 font-semibold">
                         {post.avatar}
                       </div>
                       <div>
-                        <h4 className="text-white font-medium">{post.author}</h4>
-                        <p className="text-xs text-gray-500">{post.time}</p>
+                        <h4 className="text-slate-900 font-medium">{post.author}</h4>
+                        <p className="text-xs text-slate-500">{post.time}</p>
                       </div>
                     </div>
                     
-                    <h3 className="text-white font-medium mb-2">{post.title}</h3>
-                    <p className="text-gray-400 text-sm mb-4">{post.content}</p>
+                    <h3 className="text-slate-900 font-medium mb-2">{post.title}</h3>
+                    <p className="text-slate-600 text-sm mb-4">{post.content}</p>
                     
                     <div className="flex items-center gap-6">
-                      <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-cyan-400 transition-colors">
+                      <button className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors">
                         <Heart className="w-4 h-4" />
                         {post.likes}
                       </button>
-                      <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-cyan-400 transition-colors">
+                      <button className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors">
                         <MessageCircle className="w-4 h-4" />
                         {post.comments}
                       </button>
-                      <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-cyan-400 transition-colors">
+                      <button className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors">
                         <Share2 className="w-4 h-4" />
                         Share
                       </button>
@@ -176,34 +176,34 @@ export default function Community() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Leaderboard */}
-              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="p-4 bg-white border border-slate-200 rounded">
                 <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-white font-semibold">Leaderboard</h3>
+                  <Trophy className="w-5 h-5 text-slate-600" />
+                  <h3 className="text-slate-900 font-semibold">Leaderboard</h3>
                 </div>
                 <div className="space-y-3">
                   {LEADERBOARD.map((user) => (
                     <div 
                       key={user.rank} 
-                      className={`flex items-center gap-3 p-2 rounded-lg ${
-                        user.isUser ? 'bg-cyan-500/10 border border-cyan-500/20' : ''
+                      className={`flex items-center gap-3 p-2 rounded ${
+                        user.isUser ? 'bg-slate-100 border border-slate-300' : ''
                       }`}
                     >
                       <span className={`w-6 text-center text-sm font-medium ${
-                        user.rank <= 3 ? 'text-amber-400' : 'text-gray-500'
+                        user.rank <= 3 ? 'text-slate-700' : 'text-slate-500'
                       }`}>
                         {user.rank}
                       </span>
-                      <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 text-sm font-semibold">
                         {user.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm truncate ${user.isUser ? 'text-cyan-400' : 'text-white'}`}>
+                        <p className={`text-sm truncate ${user.isUser ? 'text-slate-900' : 'text-slate-900'}`}>
                           {user.name}
                         </p>
-                        <p className="text-xs text-gray-500">{user.xp.toLocaleString()} XP</p>
+                        <p className="text-xs text-slate-500">{user.xp.toLocaleString()} XP</p>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <div className="flex items-center gap-1 text-xs text-slate-500">
                         <TrendingUp className="w-3 h-3" />
                         {user.streak}
                       </div>
@@ -213,21 +213,21 @@ export default function Community() {
               </div>
 
               {/* Active Challenges */}
-              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="p-4 bg-white border border-slate-200 rounded">
                 <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-white font-semibold">Challenges</h3>
+                  <Target className="w-5 h-5 text-slate-600" />
+                  <h3 className="text-slate-900 font-semibold">Challenges</h3>
                 </div>
                 <div className="space-y-3">
                   {CHALLENGES.map((challenge) => (
-                    <div key={challenge.name} className="p-3 bg-white/[0.02] border border-white/5 rounded-lg">
+                    <div key={challenge.name} className="p-3 bg-slate-50 border border-slate-200 rounded">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-white font-medium">{challenge.name}</p>
+                        <p className="text-sm text-slate-900 font-medium">{challenge.name}</p>
                         {challenge.joined && (
-                          <span className="text-xs text-green-400">Joined</span>
+                          <span className="text-xs text-slate-700">Joined</span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
                         <span>{challenge.participants.toLocaleString()} participants</span>
                         <span>{challenge.daysLeft} days left</span>
                       </div>
@@ -237,24 +237,24 @@ export default function Community() {
               </div>
 
               {/* Your Stats */}
-              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <h3 className="text-white font-semibold mb-4">Your Activity</h3>
+              <div className="p-4 bg-white border border-slate-200 rounded">
+                <h3 className="text-slate-900 font-semibold mb-4">Your Activity</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Posts</span>
-                    <span className="text-sm text-white">3</span>
+                    <span className="text-sm text-slate-500">Posts</span>
+                    <span className="text-sm text-slate-900">3</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Comments</span>
-                    <span className="text-sm text-white">12</span>
+                    <span className="text-sm text-slate-500">Comments</span>
+                    <span className="text-sm text-slate-900">12</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Likes Received</span>
-                    <span className="text-sm text-white">47</span>
+                    <span className="text-sm text-slate-500">Likes Received</span>
+                    <span className="text-sm text-slate-900">47</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Challenges</span>
-                    <span className="text-sm text-white">1 joined</span>
+                    <span className="text-sm text-slate-500">Challenges</span>
+                    <span className="text-sm text-slate-900">1 joined</span>
                   </div>
                 </div>
               </div>
