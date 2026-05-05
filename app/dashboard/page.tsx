@@ -70,12 +70,12 @@ export default function Dashboard() {
 
             <div className="p-4 bg-white border border-slate-200 rounded">
               <p className="text-sm text-slate-500">Current streak</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.current_streak_days ?? 0} day</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.current_streak_days ?? 0} day(s)</p>
             </div>
 
             <div className="p-4 bg-white border border-slate-200 rounded">
               <p className="text-sm text-slate-500">Longest streak</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.longest_streak_days ?? 0} day</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{streak?.longest_streak_days ?? 0} day(s)</p>
             </div>
 
             <div className="p-4 bg-white border border-slate-200 rounded">
@@ -123,8 +123,8 @@ export default function Dashboard() {
               <div className="rounded border border-slate-200 bg-white p-5">
                 <h3 className="text-sm font-semibold text-slate-900">Streak status</h3>
                 <div className="mt-3 space-y-2 text-sm text-slate-600">
-                  <p className="flex items-center gap-2"><Flame className="h-4 w-4 text-slate-700" /> Current: {streak?.current_streak_days ?? 0} day</p>
-                  <p className="flex items-center gap-2"><Trophy className="h-4 w-4 text-slate-700" /> Best: {streak?.longest_streak_days ?? 0} day</p>
+                  <p className="flex items-center gap-2"><Flame className="h-4 w-4 text-slate-700" /> Current: {streak?.current_streak_days ?? 0} day(s)</p>
+                  <p className="flex items-center gap-2"><Trophy className="h-4 w-4 text-slate-700" /> Best: {streak?.longest_streak_days ?? 0} day(s)</p>
                   <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-700" /> Last activity: {streak?.last_activity_date || 'Not yet'}</p>
                 </div>
               </div>
