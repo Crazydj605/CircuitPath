@@ -177,7 +177,7 @@ export default function Home() {
                 href="#pricing"
                 className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors"
               >
-                Start Free Trial
+                Start Learning
                 <ArrowRight className="w-4 h-4 ml-2" />
               </a>
               <a
@@ -191,7 +191,7 @@ export default function Home() {
             <div className="flex items-center gap-6 text-sm text-slate-500 justify-center">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                <span>14-day free trial</span>
+                <span>Beginner friendly lessons</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-slate-400" />
@@ -455,7 +455,7 @@ export default function Home() {
                 href="#pricing"
                 className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors"
               >
-                Begin Free Trial
+                Choose Your Plan
                 <ArrowRight className="w-4 h-4 ml-2" />
               </a>
               <a
@@ -466,7 +466,7 @@ export default function Home() {
               </a>
             </div>
             <p className="mt-4 text-sm text-slate-400">
-              Free for 14 days. No credit card required to start.
+              Start on the Free plan and upgrade when you want more guided depth.
             </p>
           </div>
         </div>
@@ -480,7 +480,13 @@ export default function Home() {
               <Zap className="w-6 h-6 text-slate-600" />
               <span className="text-xl font-bold text-slate-900">CircuitPath</span>
             </div>
-            <p className="text-slate-400 text-sm">© 2024 CircuitPath. All rights reserved.</p>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-slate-500">
+              <a href="/terms" className="hover:text-slate-800">Terms</a>
+              <a href="/privacy" className="hover:text-slate-800">Privacy</a>
+              <a href="/cookies" className="hover:text-slate-800">Cookies</a>
+              <a href="/acceptable-use" className="hover:text-slate-800">Acceptable Use</a>
+              <a href="/disclaimer" className="hover:text-slate-800">Disclaimer</a>
+            </div>
           </div>
         </div>
       </footer>

@@ -1,75 +1,90 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Check } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Check, ShieldCheck, Sparkles } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
-const plans = [
-  {
+const plans = {
+  free: {
     name: 'Free',
-    tier: 'free',
-    price: { monthly: 0, yearly: 0 },
-    description: 'Start learning robotics',
+    monthly: 0,
+    yearly: 0,
+    blurb: 'Great for getting started with Arduino basics.',
+    cta: 'Current plan',
     features: [
-      '5 beginner lessons',
-      'Basic circuit simulator',
-      '10 AI tutor messages/day',
-      'Community access',
-      'Progress tracking',
+      'Core beginner lessons',
+      'Basic lesson tracking',
+      'Community read access',
     ],
   },
-  {
+  pro: {
     name: 'Pro',
-    tier: 'pro',
-    price: { monthly: 10, yearly: 8 },
-    description: 'For serious learners',
-    popular: true,
+    monthly: 10,
+    yearly: 8,
+    blurb: 'Best for focused learners who want guided momentum.',
+    cta: 'Upgrade to Pro',
     features: [
-      'All 50+ lessons',
-      'Unlimited AI tutoring',
-      'Project workspace',
-      'Quiz mode & assessments',
-      'Priority support',
-      'Download resources',
+      'Full guided lesson library',
+      'Step checkpoints + troubleshooting',
+      'Progress insights and streak tools',
+      'Priority lesson updates',
     ],
   },
-  {
-    name: 'Premium',
-    tier: 'premium',
-    price: { monthly: 24, yearly: 22 },
-    description: 'For professionals',
+  max: {
+    name: 'Max',
+    monthly: 19,
+    yearly: 17,
+    blurb: 'For power learners who want the deepest support.',
+    cta: 'Upgrade to Max',
     features: [
       'Everything in Pro',
-      'Live workshops',
-      'Certification program',
-      'Hardware discounts',
-      'Private community',
-      '1-on-1 mentoring',
+      'Advanced project tracks',
+      'Deep-dive troubleshooting packs',
+      'Early access to new modules',
     ],
   },
-]
+}
 
 export default function PricingSection() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
+  const [currentTier, setCurrentTier] = useState<'free' | 'pro' | 'max'>('free')
+
+  useEffect(() => {
+    const readTier = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const tier = profile?.subscription_tier
+      if (tier === 'pro' || tier === 'max') setCurrentTier(tier)
+    }
+
+    readTier()
+  }, [])
 
   return (
-    <section id="pricing" className="py-24 px-4">
+    <section id="pricing" className="py-24 px-4 bg-white border-y border-slate-200">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Simple, transparent pricing
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            Pick the plan that matches your pace
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
-            Start free and upgrade when you're ready. All plans include a 14-day free trial.
+          <p className="text-slate-500 max-w-2xl mx-auto mb-8">
+            Annual billing is selected by default to show your lowest monthly cost.
           </p>
 
-          {/* Toggle */}
-          <div className="inline-flex items-center gap-2 p-1 bg-white/5 rounded-full">
+          <div className="inline-flex items-center gap-2 p-1 bg-slate-100 rounded-full">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 billingCycle === 'monthly' 
-                  ? 'bg-white text-[#0a0a0f]' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-white text-slate-900' 
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Monthly
@@ -78,81 +93,101 @@ export default function PricingSection() {
               onClick={() => setBillingCycle('yearly')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
                 billingCycle === 'yearly' 
-                  ? 'bg-white text-[#0a0a0f]' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-white text-slate-900' 
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              Yearly
-              <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">
-                Save $2/mo
+              Annual
+              <span className="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
+                Lower monthly cost
               </span>
             </button>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
+          {(['free', 'pro', 'max'] as const).map((tier) => {
+            const plan = plans[tier]
+            const isCurrent = tier === currentTier
+            const isPopular = tier === 'pro' && billingCycle === 'yearly'
+            const monthlyValue = billingCycle === 'monthly' ? plan.monthly : plan.yearly
+
+            return (
             <div
-              key={plan.tier}
+              key={tier}
               className={`relative p-6 rounded-2xl border ${
-                plan.popular
-                  ? 'bg-white/[0.03] border-cyan-500/30'
-                  : 'bg-white/[0.02] border-white/5'
+                isPopular
+                  ? 'bg-slate-50 border-slate-400'
+                  : 'bg-white border-slate-200'
               }`}
             >
-              {plan.popular && (
+              {isPopular && (
                 <div className="absolute -top-3 left-6">
-                  <span className="px-3 py-1 bg-cyan-500 text-white text-xs font-medium rounded-full">
+                  <span className="px-3 py-1 bg-slate-900 text-white text-xs font-medium rounded-full">
                     Most Popular
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-white mb-1">{plan.name}</h3>
-                <p className="text-sm text-gray-500">{plan.description}</p>
+                <h3 className="text-xl font-semibold text-slate-900 mb-1">{plan.name}</h3>
+                <p className="text-sm text-slate-500">{plan.blurb}</p>
               </div>
 
               <div className="mb-6">
-                <span className="text-4xl font-bold text-white">
-                  ${billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly}
+                <span className="text-4xl font-bold text-slate-900">
+                  ${monthlyValue}
                 </span>
-                <span className="text-gray-500">/mo</span>
+                <span className="text-slate-500">/mo</span>
               </div>
 
-              {billingCycle === 'yearly' && plan.tier !== 'free' && (
-                <p className="text-sm text-gray-500 mb-6">
-                  ${plan.price.yearly * 12}/year (save ${(plan.price.monthly - plan.price.yearly) * 12}/year)
+              {billingCycle === 'yearly' && tier !== 'free' && (
+                <p className="text-sm text-slate-500 mb-6">
+                  Billed yearly at ${plan.yearly * 12}. Save ${(plan.monthly - plan.yearly) * 12}/year.
                 </p>
               )}
 
               <ul className="space-y-3 mb-6">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
+                    <Check className="w-5 h-5 text-slate-700 shrink-0 mt-0.5" />
+                    <span className="text-slate-700 text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <button
+                disabled={isCurrent}
                 className={`w-full py-3 rounded-full font-medium transition-colors ${
-                  plan.tier === 'free'
-                    ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
-                    : plan.popular
-                    ? 'bg-white text-[#0a0a0f] hover:bg-gray-100'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                  isCurrent
+                    ? 'bg-slate-200 text-slate-500 cursor-default'
+                    : isPopular
+                    ? 'bg-slate-900 text-white hover:bg-slate-800'
+                    : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
                 }`}
               >
-                {plan.tier === 'free' ? 'Get Started Free' : 'Start Free Trial'}
+                {isCurrent ? 'Current plan' : plan.cta}
               </button>
+
+              {!isCurrent && (
+                <p className="mt-3 text-xs text-slate-500 flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" />
+                  Secure billing integration can be connected later in Stripe setup.
+                </p>
+              )}
             </div>
-          ))}
+          )})}
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-8">
-          All plans include a 14-day free trial. Cancel anytime.
-        </p>
+        <div className="mt-12 rounded border border-slate-200 bg-slate-50 p-6">
+          <div className="flex items-center gap-2 text-slate-800">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-sm font-semibold">Why annual is shown first</p>
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Most learners pick annual because it lowers monthly cost and removes billing noise while you stay focused on learning.
+          </p>
+        </div>
       </div>
     </section>
   )
