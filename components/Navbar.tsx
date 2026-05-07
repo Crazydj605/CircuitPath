@@ -10,25 +10,23 @@ export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
 
-  const publicNavLinks = [
-    { label: 'Pricing', href: '/#pricing' },
+  const publicLinks = [
     { label: 'Features', href: '/#features' },
+    { label: 'Pricing', href: '/#pricing' },
   ]
 
-  const appNavLinks = [
+  const appLinks = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Learn', href: '/learn' },
     { label: 'Community', href: '/community' },
   ]
 
   useEffect(() => {
-    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
     })
 
@@ -38,20 +36,28 @@ export default function Navbar() {
   const handleSignOut = async () => {
     await signOut()
     setUser(null)
+    setIsMenuOpen(false)
   }
+
+  const navLinks = user ? appLinks : publicLinks
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <a href="/" className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-slate-400" />
-              <span className="text-lg font-semibold text-slate-900">CircuitPath</span>
+
+            {/* Logo */}
+            <a href="/" className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-slate-900 rounded flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-base font-semibold text-slate-900">CircuitPath</span>
             </a>
 
-            <div className="hidden md:flex items-center gap-8">
-              {(user ? appNavLinks : publicNavLinks).map((link) => (
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-7">
+              {navLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
@@ -62,19 +68,18 @@ export default function Navbar() {
               ))}
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Right side */}
+            <div className="flex items-center gap-3">
               {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded">
-                    <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm text-slate-800">
-                      {user.email?.split('@')[0]}
-                    </span>
+                <div className="flex items-center gap-2">
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-sm text-slate-700">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    {user.email?.split('@')[0]}
                   </div>
                   <button
                     onClick={handleSignOut}
-                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-900 transition-colors"
-                    title="Sign Out"
+                    className="p-2 hover:bg-slate-100 rounded transition-colors text-slate-500 hover:text-slate-900"
+                    title="Sign out"
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
@@ -82,7 +87,7 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                className="px-5 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"
                 >
                   Get Started
                 </button>
@@ -90,35 +95,48 @@ export default function Navbar() {
 
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 hover:bg-slate-100 rounded-lg"
+                className="md:hidden p-2 hover:bg-slate-100 rounded transition-colors"
               >
-                {isMenuOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
+                {isMenuOpen
+                  ? <X className="w-5 h-5 text-slate-700" />
+                  : <Menu className="w-5 h-5 text-slate-700" />
+                }
               </button>
             </div>
           </div>
         </div>
 
+        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden px-4 py-4 border-t border-slate-200 bg-white/95">
-            {(user ? appNavLinks : publicNavLinks).map((link) => (
+          <div className="md:hidden px-4 pb-4 pt-2 border-t border-slate-200 bg-white">
+            {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="block py-3 text-slate-500 hover:text-slate-900"
+                className="block py-3 text-sm text-slate-600 hover:text-slate-900 border-b border-slate-100 last:border-0"
               >
                 {link.label}
               </a>
             ))}
-            {user && (
+            {user ? (
+              <>
+                <p className="py-3 text-sm text-slate-500 border-b border-slate-100">
+                  {user.email}
+                </p>
+                <button
+                  onClick={handleSignOut}
+                  className="block w-full text-left py-3 text-sm text-red-500 hover:text-red-700"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => {
-                  handleSignOut()
-                  setIsMenuOpen(false)
-                }}
-                className="block w-full text-left py-3 text-red-400"
+                onClick={() => { setIsMenuOpen(false); setIsAuthOpen(true) }}
+                className="block w-full text-left py-3 text-sm font-medium text-slate-900 hover:text-slate-600"
               >
-                Sign Out
+                Get Started
               </button>
             )}
           </div>

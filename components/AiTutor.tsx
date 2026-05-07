@@ -2,15 +2,13 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, X, Send, Bot, User, Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { X, Send, Bot, User } from 'lucide-react'
 import { sendMessageToGrok } from '@/lib/grok'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: Date
 }
 
 export default function AiTutor() {
@@ -19,21 +17,18 @@ export default function AiTutor() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm your AI tutor powered by Grok. Ask me anything about circuits, electronics, or robotics!",
-      timestamp: new Date(),
+      content: "Hi! I'm your AI tutor. Ask me anything about circuits, electronics, or robotics and I'll help you out.",
     },
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, isOpen])
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -42,7 +37,6 @@ export default function AiTutor() {
       id: Date.now().toString(),
       role: 'user',
       content: input.trim(),
-      timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
@@ -51,29 +45,29 @@ export default function AiTutor() {
 
     try {
       const response = await sendMessageToGrok(userMessage.content)
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.message,
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again!',
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.message,
+        },
+      ])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Something went wrong. Please try again.',
+        },
+      ])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -82,129 +76,125 @@ export default function AiTutor() {
 
   return (
     <>
-      {/* Floating Button */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsOpen(true)}
-        className={cn(
-          'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg',
-          'bg-gradient-to-r from-circuit-accent to-circuit-purple text-white',
-          isOpen && 'hidden'
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-md shadow-lg hover:bg-slate-800 transition-colors"
+          >
+            <Bot className="w-4 h-4" />
+            <span className="text-sm font-medium">Ask AI Tutor</span>
+          </motion.button>
         )}
-      >
-        <Sparkles className="w-6 h-6" />
-      </motion.button>
+      </AnimatePresence>
 
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-circuit-panel border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.18 }}
+            className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-md shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-circuit-accent/20 to-circuit-purple/20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-circuit-accent to-circuit-purple flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 bg-slate-900 rounded flex items-center justify-center shrink-0">
+                  <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">AI Tutor</h3>
-                  <p className="text-xs text-gray-400">Powered by Grok</p>
+                  <p className="text-sm font-semibold text-slate-900">AI Tutor</p>
+                  <p className="text-xs text-slate-400">Powered by Grok</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-slate-200 rounded transition-colors"
+                title="Close"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-4 h-4 text-slate-500" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    'flex gap-3',
-                    message.role === 'user' && 'flex-row-reverse'
-                  )}
+            <div className="h-72 overflow-y-auto p-4 space-y-3 bg-white">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
                   <div
-                    className={cn(
-                      'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
-                      message.role === 'assistant'
-                        ? 'bg-circuit-accent/20'
-                        : 'bg-circuit-purple/20'
-                    )}
+                    className={`w-7 h-7 rounded flex items-center justify-center shrink-0 ${
+                      msg.role === 'assistant' ? 'bg-slate-100' : 'bg-slate-900'
+                    }`}
                   >
-                    {message.role === 'assistant' ? (
-                      <Bot className="w-4 h-4 text-circuit-accent" />
+                    {msg.role === 'assistant' ? (
+                      <Bot className="w-3.5 h-3.5 text-slate-600" />
                     ) : (
-                      <User className="w-4 h-4 text-circuit-purple" />
+                      <User className="w-3.5 h-3.5 text-white" />
                     )}
                   </div>
                   <div
-                    className={cn(
-                      'max-w-[80%] p-3 rounded-2xl text-sm',
-                      message.role === 'assistant'
-                        ? 'bg-white/5 text-gray-300 rounded-tl-none'
-                        : 'bg-circuit-accent/20 text-white rounded-tr-none'
-                    )}
+                    className={`max-w-[80%] px-3 py-2 rounded text-sm leading-relaxed ${
+                      msg.role === 'assistant'
+                        ? 'bg-slate-50 border border-slate-200 text-slate-700'
+                        : 'bg-slate-900 text-white'
+                    }`}
                   >
-                    {message.content}
+                    {msg.content}
                   </div>
-                </motion.div>
+                </div>
               ))}
+
               {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-3"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-circuit-accent/20 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-circuit-accent" />
+                <div className="flex gap-2">
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-slate-600" />
                   </div>
-                  <div className="p-3 bg-white/5 rounded-2xl rounded-tl-none">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-circuit-accent rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-circuit-accent rounded-full animate-bounce delay-100" />
-                      <span className="w-2 h-2 bg-circuit-accent rounded-full animate-bounce delay-200" />
+                  <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded">
+                    <div className="flex gap-1 items-center h-4">
+                      <span
+                        className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <span
+                        className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <span
+                        className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-white/10">
+            <div className="px-4 py-3 border-t border-slate-200 bg-slate-50">
               <div className="flex gap-2">
                 <input
-                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder="Ask about circuits, robotics..."
-                  className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-circuit-accent text-sm"
+                  className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
                 />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
-                  className="px-4 py-2 bg-gradient-to-r from-circuit-accent to-circuit-purple rounded-xl text-white disabled:opacity-50"
+                  className="px-3 py-2 bg-slate-900 text-white rounded hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="w-4 h-4" />
-                </motion.button>
+                </button>
               </div>
             </div>
           </motion.div>
