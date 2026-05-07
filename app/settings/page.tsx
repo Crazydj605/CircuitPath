@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, LogOut, User, Settings as SettingsIcon, Cpu, CheckCircle2 } from 'lucide-react'
+import { Bell, LogOut, User, Settings as SettingsIcon, Cpu, CheckCircle2, Trash2, AlertTriangle } from 'lucide-react'
 import { supabase, signOut } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 
@@ -33,6 +33,74 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   )
 }
 
+// Confirmation modal for account deletion
+function DeleteModal({
+  onConfirm,
+  onCancel,
+  deleting,
+}: {
+  onConfirm: () => void
+  onCancel: () => void
+  deleting: boolean
+}) {
+  const [typed, setTyped] = useState('')
+  const confirmed = typed.trim().toLowerCase() === 'delete'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-md shadow-2xl overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-red-100 bg-red-50">
+          <div className="w-9 h-9 bg-red-100 rounded flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+          </div>
+          <div>
+            <p className="font-semibold text-red-800">Delete your account?</p>
+            <p className="text-xs text-red-500">This cannot be undone.</p>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <p className="text-sm text-slate-600 leading-relaxed mb-4">
+            This will permanently delete your account, all lesson progress, streaks, and preferences.
+            <span className="font-semibold text-slate-900"> There is no way to recover this data.</span>
+          </p>
+
+          <div className="mb-5">
+            <label className="block text-sm text-slate-500 mb-1.5">
+              Type <span className="font-mono font-semibold text-slate-800">delete</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={typed}
+              onChange={e => setTyped(e.target.value)}
+              placeholder="delete"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-red-400 transition-colors"
+              autoFocus
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={onConfirm}
+              disabled={!confirmed || deleting}
+              className="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {deleting ? 'Deleting...' : 'Yes, delete my account'}
+            </button>
+            <button
+              onClick={onCancel}
+              disabled={deleting}
+              className="flex-1 py-2.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-200 disabled:opacity-40 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Settings() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -41,6 +109,9 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [preferences, setPreferences] = useState<Preferences>({
     board_type: 'Arduino Uno',
     beginner_tips_enabled: true,
@@ -104,6 +175,27 @@ export default function Settings() {
     setSaving(false)
   }
 
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError('')
+
+    const { error } = await supabase.rpc('delete_user')
+
+    if (error) {
+      setDeleteError(
+        error.message.includes('function')
+          ? 'The delete_user SQL function is missing. Please run it in your Supabase SQL Editor first.'
+          : `Error: ${error.message}`
+      )
+      setDeleting(false)
+      return
+    }
+
+    // Sign out locally and go home
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -113,162 +205,189 @@ export default function Settings() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <Navbar />
+    <>
+      <main className="min-h-screen bg-slate-50">
+        <Navbar />
 
-      <div className="pt-20 pb-16">
+        <div className="pt-20 pb-16">
 
-        {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-4 py-8">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Settings</h1>
-            <p className="text-slate-500 text-sm">Manage your profile and learning preferences.</p>
-          </div>
-        </div>
-
-        <div className="max-w-3xl mx-auto px-4 mt-6 space-y-5">
-
-          {/* Profile section */}
-          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50">
-              <User className="w-4 h-4 text-slate-400" />
-              <h2 className="text-sm font-semibold text-slate-700">Profile</h2>
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-14 h-14 bg-slate-100 rounded-md flex items-center justify-center text-slate-700 text-xl font-bold">
-                  {user?.email?.[0]?.toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">{displayName || user?.email?.split('@')[0]}</p>
-                  <p className="text-sm text-slate-400">{user?.email}</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-slate-500 mb-1.5">Display Name</label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
-                  placeholder="Your name"
-                />
-              </div>
+          {/* Header */}
+          <div className="bg-white border-b border-slate-200 px-4 py-8">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-2xl font-bold text-slate-900 mb-1">Settings</h1>
+              <p className="text-slate-500 text-sm">Manage your profile and learning preferences.</p>
             </div>
           </div>
 
-          {/* Learning preferences */}
-          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50">
-              <Cpu className="w-4 h-4 text-slate-400" />
-              <h2 className="text-sm font-semibold text-slate-700">Learning Preferences</h2>
-            </div>
-            <div className="divide-y divide-slate-100">
+          <div className="max-w-3xl mx-auto px-4 mt-6 space-y-5">
 
-              {/* Board type */}
-              <div className="px-5 py-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Arduino board type</label>
-                <p className="text-xs text-slate-400 mb-2">Used to tailor code examples in lessons.</p>
-                <select
-                  value={preferences.board_type}
-                  onChange={e => setPreferences(prev => ({ ...prev, board_type: e.target.value }))}
-                  className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
-                >
-                  <option>Arduino Uno</option>
-                  <option>Arduino Nano</option>
-                  <option>Arduino Mega</option>
-                </select>
+            {/* Profile */}
+            <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50">
+                <User className="w-4 h-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700">Profile</h2>
               </div>
-
-              {/* Reminder cadence */}
-              <div className="px-5 py-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Learning reminder</label>
-                <p className="text-xs text-slate-400 mb-2">How often you want to be nudged to keep your streak.</p>
-                <select
-                  value={preferences.reminder_cadence}
-                  onChange={e => setPreferences(prev => ({ ...prev, reminder_cadence: e.target.value as Preferences['reminder_cadence'] }))}
-                  className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
-                >
-                  <option value="off">Off</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                </select>
-              </div>
-
-              {/* Beginner tips toggle */}
-              <div className="px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">Beginner tips in lessons</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Show helpful hints for new concepts</p>
-                </div>
-                <Toggle
-                  checked={preferences.beginner_tips_enabled}
-                  onChange={v => setPreferences(prev => ({ ...prev, beginner_tips_enabled: v }))}
-                />
-              </div>
-
-              {/* Notifications toggle */}
-              <div className="px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
-                    <Bell className="w-4 h-4 text-slate-500" />
+              <div className="p-5">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 bg-slate-100 rounded-md flex items-center justify-center text-slate-700 text-xl font-bold">
+                    {user?.email?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-700">Notifications</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Learning reminders and updates</p>
+                    <p className="font-semibold text-slate-900">{displayName || user?.email?.split('@')[0]}</p>
+                    <p className="text-sm text-slate-400">{user?.email}</p>
                   </div>
                 </div>
-                <Toggle
-                  checked={preferences.notifications_enabled}
-                  onChange={v => setPreferences(prev => ({ ...prev, notifications_enabled: v }))}
-                />
+                <div>
+                  <label className="block text-sm text-slate-500 mb-1.5">Display Name</label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={e => setDisplayName(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
+                    placeholder="Your name"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Save button */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={saveSettings}
-              disabled={saving}
-              className="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
-            >
-              {saving ? 'Saving...' : 'Save settings'}
-            </button>
-            {saved && (
-              <span className="flex items-center gap-1.5 text-sm text-green-600">
-                <CheckCircle2 className="w-4 h-4" /> Saved!
-              </span>
-            )}
-            {errorMsg && (
-              <span className="text-sm text-red-600">{errorMsg}</span>
-            )}
-          </div>
+            {/* Learning preferences */}
+            <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 bg-slate-50">
+                <Cpu className="w-4 h-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700">Learning Preferences</h2>
+              </div>
+              <div className="divide-y divide-slate-100">
 
-          {/* Danger zone */}
-          <div className="bg-white border border-red-200 rounded-md overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-red-100 bg-red-50">
-              <SettingsIcon className="w-4 h-4 text-red-400" />
-              <h2 className="text-sm font-semibold text-red-700">Account</h2>
+                <div className="px-5 py-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Arduino board type</label>
+                  <p className="text-xs text-slate-400 mb-2">Used to tailor code examples in lessons.</p>
+                  <select
+                    value={preferences.board_type}
+                    onChange={e => setPreferences(prev => ({ ...prev, board_type: e.target.value }))}
+                    className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
+                  >
+                    <option>Arduino Uno</option>
+                    <option>Arduino Nano</option>
+                    <option>Arduino Mega</option>
+                  </select>
+                </div>
+
+                <div className="px-5 py-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Learning reminder</label>
+                  <p className="text-xs text-slate-400 mb-2">How often you want to be nudged to keep your streak.</p>
+                  <select
+                    value={preferences.reminder_cadence}
+                    onChange={e => setPreferences(prev => ({ ...prev, reminder_cadence: e.target.value as Preferences['reminder_cadence'] }))}
+                    className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
+                  >
+                    <option value="off">Off</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+
+                <div className="px-5 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Beginner tips in lessons</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Show helpful hints for new concepts</p>
+                  </div>
+                  <Toggle
+                    checked={preferences.beginner_tips_enabled}
+                    onChange={v => setPreferences(prev => ({ ...prev, beginner_tips_enabled: v }))}
+                  />
+                </div>
+
+                <div className="px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
+                      <Bell className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Notifications</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Learning reminders and updates</p>
+                    </div>
+                  </div>
+                  <Toggle
+                    checked={preferences.notifications_enabled}
+                    onChange={v => setPreferences(prev => ({ ...prev, notifications_enabled: v }))}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="p-5">
+
+            {/* Save */}
+            <div className="flex items-center gap-4">
               <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 p-3 w-full bg-white border border-slate-200 rounded-md hover:bg-red-50 hover:border-red-200 transition-colors text-left"
+                onClick={saveSettings}
+                disabled={saving}
+                className="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
               >
-                <div className="w-9 h-9 bg-red-100 rounded flex items-center justify-center shrink-0">
-                  <LogOut className="w-4 h-4 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Sign out</p>
-                  <p className="text-xs text-slate-400">Log out securely from this device</p>
-                </div>
+                {saving ? 'Saving...' : 'Save settings'}
               </button>
+              {saved && (
+                <span className="flex items-center gap-1.5 text-sm text-green-600">
+                  <CheckCircle2 className="w-4 h-4" /> Saved!
+                </span>
+              )}
+              {errorMsg && <span className="text-sm text-red-600">{errorMsg}</span>}
             </div>
+
+            {/* Account actions */}
+            <div className="bg-white border border-red-200 rounded-md overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-red-100 bg-red-50">
+                <SettingsIcon className="w-4 h-4 text-red-400" />
+                <h2 className="text-sm font-semibold text-red-700">Account</h2>
+              </div>
+              <div className="p-5 space-y-3">
+
+                {/* Sign out */}
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-3 p-3 w-full bg-white border border-slate-200 rounded-md hover:bg-red-50 hover:border-red-200 transition-colors text-left"
+                >
+                  <div className="w-9 h-9 bg-red-100 rounded flex items-center justify-center shrink-0">
+                    <LogOut className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Sign out</p>
+                    <p className="text-xs text-slate-400">Log out securely from this device</p>
+                  </div>
+                </button>
+
+                {/* Delete account */}
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex items-center gap-3 p-3 w-full bg-white border border-red-200 rounded-md hover:bg-red-50 transition-colors text-left"
+                >
+                  <div className="w-9 h-9 bg-red-100 rounded flex items-center justify-center shrink-0">
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-red-700">Delete account</p>
+                    <p className="text-xs text-slate-400">Permanently delete your account and all data</p>
+                  </div>
+                </button>
+
+                {deleteError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-700">{deleteError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <DeleteModal
+          onConfirm={handleDeleteAccount}
+          onCancel={() => { setShowDeleteModal(false); setDeleteError('') }}
+          deleting={deleting}
+        />
+      )}
+    </>
   )
 }
