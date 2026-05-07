@@ -90,7 +90,6 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
       completed_at: done ? new Date().toISOString() : null,
       last_seen_at: new Date().toISOString(),
     }))
-    setCheckpointInput('')
     setCheckpointResult('idle')
     if (stepIndex === steps.length - 1) {
       setIsComplete(true)
