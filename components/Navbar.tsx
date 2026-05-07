@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Zap, Menu, X, User, LogOut } from 'lucide-react'
 import { supabase, signOut } from '@/lib/supabase'
 import AuthModal from './AuthModal'
+import Tutorial from './Tutorial'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -11,25 +12,23 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null)
 
   const publicLinks = [
-    { label: 'Features', href: '/#features' },
-    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Features', href: '/#features', tourId: undefined },
+    { label: 'Pricing', href: '/#pricing', tourId: undefined },
   ]
 
   const appLinks = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Learn', href: '/learn' },
-    { label: 'Community', href: '/community' },
+    { label: 'Dashboard', href: '/dashboard', tourId: 'nav-dashboard' },
+    { label: 'Learn', href: '/learn', tourId: 'nav-learn' },
+    { label: 'Community', href: '/community', tourId: 'nav-community' },
   ]
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
@@ -61,6 +60,7 @@ export default function Navbar() {
                 <a
                   key={link.label}
                   href={link.href}
+                  data-tour={link.tourId}
                   className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
                 >
                   {link.label}
@@ -113,6 +113,7 @@ export default function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
+                data-tour={link.tourId}
                 onClick={() => setIsMenuOpen(false)}
                 className="block py-3 text-sm text-slate-600 hover:text-slate-900 border-b border-slate-100 last:border-0"
               >
@@ -121,9 +122,7 @@ export default function Navbar() {
             ))}
             {user ? (
               <>
-                <p className="py-3 text-sm text-slate-500 border-b border-slate-100">
-                  {user.email}
-                </p>
+                <p className="py-3 text-sm text-slate-400 border-b border-slate-100">{user.email}</p>
                 <button
                   onClick={handleSignOut}
                   className="block w-full text-left py-3 text-sm text-red-500 hover:text-red-700"
@@ -134,7 +133,7 @@ export default function Navbar() {
             ) : (
               <button
                 onClick={() => { setIsMenuOpen(false); setIsAuthOpen(true) }}
-                className="block w-full text-left py-3 text-sm font-medium text-slate-900 hover:text-slate-600"
+                className="block w-full text-left py-3 text-sm font-medium text-slate-900"
               >
                 Get Started
               </button>
@@ -144,6 +143,9 @@ export default function Navbar() {
       </nav>
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+
+      {/* Tutorial lives in Navbar so it appears on every authenticated page */}
+      {user && <Tutorial />}
     </>
   )
 }

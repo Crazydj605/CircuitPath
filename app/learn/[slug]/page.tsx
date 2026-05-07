@@ -3,11 +3,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react'
+import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
 import type { LearningLesson, LearningLessonStep, LearningUserLessonProgress } from '@/types'
+
+function difficultyStyle(d: string) {
+  switch (d?.toLowerCase()) {
+    case 'beginner': return 'bg-green-100 text-green-700'
+    case 'intermediate': return 'bg-amber-100 text-amber-700'
+    case 'advanced': return 'bg-red-100 text-red-700'
+    default: return 'bg-slate-100 text-slate-600'
+  }
+}
 
 export default function LessonPage({ params }: { params: { slug: string } }) {
   const router = useRouter()
@@ -24,10 +33,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        router.push('/')
-        return
-      }
+      if (!session) { router.push('/'); return }
       const data = await getLessonBySlug(params.slug)
       setLesson(data.lesson)
       setSteps(data.steps)
@@ -51,10 +57,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
 
   const localDate = () => {
     const now = new Date()
-    const yyyy = now.getFullYear()
-    const mm = String(now.getMonth() + 1).padStart(2, '0')
-    const dd = String(now.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
 
   const checkAnswer = async () => {
@@ -64,12 +67,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     const isCorrect = expected.length === 0 || given.includes(expected)
     setCheckpointResult(isCorrect ? 'correct' : 'retry')
     if (isCorrect) {
-      await submitStepCheck({
-        lessonId: lesson.id,
-        stepId: activeStep.id,
-        localDate: localDate(),
-        isCorrect,
-      })
+      await submitStepCheck({ lessonId: lesson.id, stepId: activeStep.id, localDate: localDate(), isCorrect })
     }
   }
 
@@ -77,20 +75,15 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     if (!lesson || !activeStep) return
     const newCompleted = new Set(completedSteps)
     newCompleted.add(activeStep.step_index)
-
     const nextIndex = Math.min(stepIndex + 1, steps.length - 1)
-    const done =
-      nextIndex === steps.length - 1 &&
-      newCompleted.has(steps[steps.length - 1].step_index)
-
+    const done = nextIndex === steps.length - 1 && newCompleted.has(steps[steps.length - 1].step_index)
     await saveLessonProgress({
       lessonId: lesson.id,
       currentStepIndex: nextIndex,
       completedSteps: Array.from(newCompleted),
       isCompleted: done,
     })
-
-    setProgress((prev) => ({
+    setProgress(prev => ({
       user_id: prev?.user_id || '',
       lesson_id: lesson.id,
       status: done ? 'completed' : 'in_progress',
@@ -100,10 +93,8 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
       completed_at: done ? new Date().toISOString() : null,
       last_seen_at: new Date().toISOString(),
     }))
-
     setCheckpointInput('')
     setCheckpointResult('idle')
-
     if (stepIndex === steps.length - 1) {
       setIsComplete(true)
     } else {
@@ -126,8 +117,8 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
       </div>
     )
   }
@@ -136,13 +127,13 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     return (
       <main className="min-h-screen bg-slate-50">
         <Navbar />
-        <div className="mx-auto max-w-3xl px-4 pt-28">
+        <div className="mx-auto max-w-2xl px-4 pt-28">
           <div className="bg-white border border-slate-200 rounded-md p-8 text-center">
-            <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600 mb-1">This lesson is not available yet.</p>
-            <p className="text-sm text-slate-400 mb-4">Run the migration seed and refresh to load it.</p>
-            <Link href="/learn" className="text-sm text-slate-700 underline underline-offset-2 hover:text-slate-900">
-              Back to lesson library
+            <BookOpen className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-600 mb-1 font-medium">Lesson not available yet</p>
+            <p className="text-sm text-slate-400 mb-5">Run the migration seed and refresh to load it.</p>
+            <Link href="/learn" className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm rounded-md hover:bg-slate-800 transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Back to library
             </Link>
           </div>
         </div>
@@ -150,36 +141,38 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     )
   }
 
-  const progressPercent = Math.round(((stepIndex + 1) / steps.length) * 100)
-
+  // Completion screen
   if (isComplete) {
     return (
       <main className="min-h-screen bg-slate-50">
         <Navbar />
         <div className="mx-auto max-w-2xl px-4 pt-28 pb-16">
-          <div className="bg-white border border-slate-200 rounded-md p-8 text-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-md flex items-center justify-center mx-auto mb-5">
-              <CheckCircle2 className="w-8 h-8 text-slate-700" />
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden text-center">
+            <div className="bg-slate-900 px-6 py-8">
+              <div className="w-16 h-16 bg-white/10 rounded-md flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-9 h-9 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-1">Lesson Complete!</h1>
+              <p className="text-slate-400 text-sm">{lesson.title}</p>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Lesson complete!</h1>
-            <p className="text-slate-500 mb-2">{lesson.title}</p>
-            <p className="text-sm text-slate-400 mb-8">
-              You finished all {steps.length} steps. Great work — keep that streak going.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/learn"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
-              >
-                <BookOpen className="w-4 h-4" />
-                Next lesson
-              </Link>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
-              >
-                Go to dashboard
-              </Link>
+            <div className="p-8">
+              <p className="text-slate-600 mb-6 leading-relaxed">
+                You finished all {steps.length} step{steps.length !== 1 ? 's' : ''}. Every completed lesson builds your streak — keep going!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  href="/learn"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
+                >
+                  <BookOpen className="w-4 h-4" /> Next lesson
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                >
+                  View dashboard
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -187,139 +180,178 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     )
   }
 
+  const progressPct = Math.round(((stepIndex + 1) / steps.length) * 100)
+
   return (
     <main className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-24">
+      <div className="mx-auto max-w-3xl px-4 pb-16 pt-20">
 
-        {/* Back link */}
+        {/* Back */}
         <Link
           href="/learn"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors mb-5"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors mt-4 mb-5"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to library
+          <ArrowLeft className="w-4 h-4" /> Back to library
         </Link>
 
         {/* Lesson header */}
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-slate-400">
-              Step {stepIndex + 1} of {steps.length}
-            </p>
-            <span className="text-xs font-medium text-slate-500">{progressPercent}% complete</span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium px-2 py-0.5 rounded ${difficultyStyle(lesson.difficulty)}`}>
+                {lesson.difficulty}
+              </span>
+              <span className="text-xs text-slate-400">{lesson.estimated_minutes} min</span>
+            </div>
+            <span className="text-xs text-slate-400 font-medium">{progressPct}%</span>
           </div>
 
           {/* Progress bar */}
           <div className="w-full bg-slate-100 rounded-full h-1.5 mb-4">
             <div
-              className="bg-slate-700 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
+              className="bg-slate-800 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
             />
           </div>
 
           <h1 className="text-xl font-bold text-slate-900 mb-1">{lesson.title}</h1>
           <p className="text-sm text-slate-500">{lesson.summary}</p>
+
+          {/* Step pills */}
+          <div className="flex items-center gap-1.5 mt-4 flex-wrap">
+            {steps.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => setStepIndex(i)}
+                className={`w-7 h-7 rounded flex items-center justify-center text-xs font-medium transition-colors ${
+                  i === stepIndex
+                    ? 'bg-slate-900 text-white'
+                    : completedSteps.has(s.step_index)
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                }`}
+              >
+                {completedSteps.has(s.step_index) && i !== stepIndex
+                  ? <Check className="w-3 h-3" />
+                  : i + 1
+                }
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Step content */}
-        <div className="bg-white border border-slate-200 rounded-md p-6 mb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-6 h-6 bg-slate-900 rounded flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200 rounded-md overflow-hidden mb-4">
+
+          {/* Step header */}
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div className="w-7 h-7 bg-slate-900 rounded flex items-center justify-center shrink-0">
               <span className="text-white text-xs font-bold">{stepIndex + 1}</span>
             </div>
             <h2 className="text-base font-semibold text-slate-900">{activeStep.title}</h2>
           </div>
 
-          <p className="mt-3 whitespace-pre-line text-slate-600 text-sm leading-relaxed">
-            {activeStep.instruction_md}
-          </p>
+          <div className="p-6 space-y-5">
+            {/* Instructions */}
+            <p className="whitespace-pre-line text-slate-600 text-sm leading-relaxed">
+              {activeStep.instruction_md}
+            </p>
 
-          {/* Code block */}
-          {activeStep.code_snippet && (
-            <div className="mt-5 bg-slate-900 rounded-md overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700">
-                <span className="text-xs text-slate-400 font-mono">Arduino</span>
+            {/* Code block */}
+            {activeStep.code_snippet && (
+              <div className="bg-slate-900 rounded-md overflow-hidden border border-slate-800">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700/50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-slate-600" />
+                    <span className="text-xs text-slate-400 font-mono">Arduino</span>
+                  </div>
+                  <button
+                    onClick={copyCode}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                  >
+                    {copied ? <><Check className="h-3 w-3 text-green-400" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
+                  </button>
+                </div>
+                <pre className="overflow-auto px-4 py-4 text-xs text-slate-200 font-mono leading-relaxed">
+                  {activeStep.code_snippet}
+                </pre>
+              </div>
+            )}
+
+            {/* Checkpoint */}
+            <div className={`p-4 rounded-md border transition-colors ${
+              checkpointResult === 'correct'
+                ? 'bg-green-50 border-green-200'
+                : checkpointResult === 'retry'
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-slate-50 border-slate-200'
+            }`}>
+              <p className="text-sm font-semibold text-slate-900 mb-1">Checkpoint</p>
+              <p className="text-sm text-slate-500 mb-3">
+                {activeStep.checkpoint_prompt || 'When you are done, click Check to continue.'}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  value={checkpointInput}
+                  onChange={e => setCheckpointInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') checkAnswer() }}
+                  placeholder="Type your short answer"
+                  className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none bg-white"
+                />
                 <button
-                  onClick={copyCode}
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                  onClick={checkAnswer}
+                  className="px-4 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
                 >
-                  <Copy className="h-3 w-3" />
-                  {copied ? 'Copied!' : 'Copy'}
+                  Check
                 </button>
               </div>
-              <pre className="overflow-auto px-4 py-4 text-xs text-slate-200 font-mono leading-relaxed">
-                {activeStep.code_snippet}
-              </pre>
+              {checkpointResult === 'correct' && (
+                <p className="mt-2.5 text-sm text-green-700 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Correct — well done!
+                </p>
+              )}
+              {checkpointResult === 'retry' && (
+                <p className="mt-2.5 text-sm text-amber-700">
+                  Not quite. Check the troubleshooting tip below and try again.
+                </p>
+              )}
             </div>
-          )}
 
-          {/* Checkpoint */}
-          <div className="mt-5 p-4 bg-slate-50 border border-slate-200 rounded-md">
-            <p className="text-sm font-semibold text-slate-900 mb-1">Checkpoint</p>
-            <p className="text-sm text-slate-500 mb-3">
-              {activeStep.checkpoint_prompt || 'When done, click Check to continue.'}
-            </p>
-            <div className="flex gap-2">
-              <input
-                value={checkpointInput}
-                onChange={(e) => setCheckpointInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') checkAnswer() }}
-                placeholder="Type your short answer"
-                className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none bg-white"
-              />
-              <button
-                onClick={checkAnswer}
-                className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800 transition-colors"
-              >
-                Check
-              </button>
+            {/* Troubleshooting */}
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-center gap-2 text-amber-800 mb-2">
+                <Wrench className="h-4 w-4 shrink-0" />
+                <p className="text-sm font-semibold">Troubleshooting tip</p>
+              </div>
+              <p className="whitespace-pre-line text-sm text-amber-900 leading-relaxed">
+                {activeStep.troubleshooting_md}
+              </p>
+              {activeStep.expected_outcome && (
+                <p className="mt-3 text-sm text-amber-900 pt-3 border-t border-amber-200">
+                  <span className="font-semibold">Expected outcome:</span> {activeStep.expected_outcome}
+                </p>
+              )}
             </div>
-            {checkpointResult === 'correct' && (
-              <p className="mt-2 text-sm text-green-700 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> Correct — well done!
-              </p>
-            )}
-            {checkpointResult === 'retry' && (
-              <p className="mt-2 text-sm text-amber-700">
-                Not quite. Read the troubleshooting tip below and try again.
-              </p>
-            )}
-          </div>
-
-          {/* Troubleshooting */}
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-            <div className="flex items-center gap-2 text-amber-800 mb-2">
-              <Wrench className="h-4 w-4 shrink-0" />
-              <p className="text-sm font-semibold">Troubleshooting</p>
-            </div>
-            <p className="whitespace-pre-line text-sm text-amber-900 leading-relaxed">
-              {activeStep.troubleshooting_md}
-            </p>
-            {activeStep.expected_outcome && (
-              <p className="mt-3 text-sm text-amber-900 border-t border-amber-200 pt-3">
-                <span className="font-semibold">Expected outcome:</span> {activeStep.expected_outcome}
-              </p>
-            )}
           </div>
 
           {/* Navigation */}
-          <div className="mt-6 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
             <button
               onClick={goBack}
               disabled={stepIndex === 0}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back
+              <ArrowLeft className="w-4 h-4" /> Back
             </button>
             <button
               onClick={goNext}
-              className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-5 py-2 text-sm font-medium text-white hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
             >
-              {stepIndex === steps.length - 1 ? 'Finish lesson' : 'Next step'}
-              {stepIndex < steps.length - 1 && <ArrowRight className="h-4 w-4" />}
-              {stepIndex === steps.length - 1 && <CheckCircle2 className="h-4 w-4" />}
+              {stepIndex === steps.length - 1
+                ? <><CheckCircle2 className="w-4 h-4" /> Finish lesson</>
+                : <>Next step <ArrowRight className="w-4 h-4" /></>
+              }
             </button>
           </div>
         </div>
