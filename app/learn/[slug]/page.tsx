@@ -25,7 +25,6 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   const [steps, setSteps] = useState<LearningLessonStep[]>([])
   const [progress, setProgress] = useState<LearningUserLessonProgress | null>(null)
   const [stepIndex, setStepIndex] = useState(0)
-  const [checkpointInput, setCheckpointInput] = useState('')
   const [checkpointResult, setCheckpointResult] = useState<'idle' | 'correct' | 'retry'>('idle')
   const [copied, setCopied] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -60,14 +59,12 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
 
-  const checkAnswer = async () => {
+  const checkAnswerDirect = async (answer: 'yes' | 'no') => {
     if (!activeStep || !lesson) return
-    const expected = (activeStep.checkpoint_answer || '').trim().toLowerCase()
-    const given = checkpointInput.trim().toLowerCase()
-    const isCorrect = expected.length === 0 || given.includes(expected)
+    const isCorrect = answer === 'yes'
     setCheckpointResult(isCorrect ? 'correct' : 'retry')
     if (isCorrect) {
-      await submitStepCheck({ lessonId: lesson.id, stepId: activeStep.id, localDate: localDate(), isCorrect })
+      await submitStepCheck({ lessonId: lesson.id, stepId: activeStep.id, localDate: localDate(), isCorrect: true })
     }
   }
 
@@ -288,33 +285,45 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 : 'bg-slate-50 border-slate-200'
             }`}>
               <p className="text-sm font-semibold text-slate-900 mb-1">Checkpoint</p>
-              <p className="text-sm text-slate-500 mb-3">
-                {activeStep.checkpoint_prompt || 'When you are done, click Check to continue.'}
+              <p className="text-sm text-slate-500 mb-4">
+                {activeStep.checkpoint_prompt || 'Have you completed this step?'}
               </p>
-              <div className="flex gap-2">
-                <input
-                  value={checkpointInput}
-                  onChange={e => setCheckpointInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') checkAnswer() }}
-                  placeholder="Type your short answer"
-                  className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none bg-white"
-                />
-                <button
-                  onClick={checkAnswer}
-                  className="px-4 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
-                >
-                  Check
-                </button>
-              </div>
+
+              {checkpointResult === 'idle' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => checkAnswerDirect('yes')}
+                    className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
+                  >
+                    Yes, done ✓
+                  </button>
+                  <button
+                    onClick={() => checkAnswerDirect('no')}
+                    className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                  >
+                    Not yet
+                  </button>
+                </div>
+              )}
+
               {checkpointResult === 'correct' && (
-                <p className="mt-2.5 text-sm text-green-700 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> Correct — well done!
+                <p className="text-sm text-green-700 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Great work — move to the next step!
                 </p>
               )}
+
               {checkpointResult === 'retry' && (
-                <p className="mt-2.5 text-sm text-amber-700">
-                  Not quite. Check the troubleshooting tip below and try again.
-                </p>
+                <div>
+                  <p className="text-sm text-amber-700 mb-3">
+                    No worries — check the troubleshooting tip below, then try again when ready.
+                  </p>
+                  <button
+                    onClick={() => setCheckpointResult('idle')}
+                    className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 transition-colors"
+                  >
+                    Try again
+                  </button>
+                </div>
               )}
             </div>
 

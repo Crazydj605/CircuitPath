@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star } from 'lucide-react'
+import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star, Settings as SettingsIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
@@ -26,11 +26,11 @@ export default function Dashboard() {
       setStreak(data.streak)
       setLoading(false)
 
-      // Fire the tour for brand-new users (haven't seen it yet)
-      if (!localStorage.getItem('cp_tour_done') && !localStorage.getItem('cp_tour_step')) {
-        setTimeout(() => {
-          window.dispatchEvent(new Event('cp:start-tour'))
-        }, 1200)
+      // Always show tour for the owner account; show once for new users
+      if (session.user.email === 'dominictocco20@gmail.com') {
+        setTimeout(() => window.dispatchEvent(new Event('cp:start-tour')), 1200)
+      } else if (!localStorage.getItem('cp_tour_done') && !localStorage.getItem('cp_tour_step')) {
+        setTimeout(() => window.dispatchEvent(new Event('cp:start-tour')), 1200)
       }
     }
     bootstrap()
@@ -268,9 +268,9 @@ export default function Dashboard() {
                 <h3 className="font-semibold text-slate-900 mb-3">Quick links</h3>
                 <div className="space-y-1">
                   {[
+                    { href: '/settings', icon: SettingsIcon, label: 'Settings' },
                     { href: '/learn', icon: BookOpen, label: 'Lesson library' },
                     { href: '/community', icon: Star, label: 'Community' },
-                    { href: '/settings', icon: Zap, label: 'Settings' },
                   ].map(link => (
                     <Link
                       key={link.href}
