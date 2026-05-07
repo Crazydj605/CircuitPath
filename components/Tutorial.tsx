@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { X, ArrowRight, Compass } from 'lucide-react'
 
@@ -63,15 +63,14 @@ const STEPS = [
 
 const STEP_KEY = 'cp_tour_step'
 const DONE_KEY = 'cp_tour_done'
+const PAD = 10
 
 export default function Tutorial() {
   const pathname = usePathname()
   const [stepIdx, setStepIdx] = useState<number | null>(null)
   const [visible, setVisible] = useState(false)
   const [rect, setRect] = useState<DOMRect | null>(null)
-  const frameRef = useRef<number | null>(null)
 
-  // Load on mount
   useEffect(() => {
     if (localStorage.getItem(DONE_KEY)) return
     const saved = localStorage.getItem(STEP_KEY)
@@ -81,7 +80,6 @@ export default function Tutorial() {
     }
   }, [])
 
-  // Listen for start event (dispatched from Dashboard for first-time users)
   useEffect(() => {
     const onStart = () => {
       localStorage.removeItem(DONE_KEY)
@@ -95,7 +93,6 @@ export default function Tutorial() {
 
   const currentStep = stepIdx !== null ? STEPS[stepIdx] ?? null : null
 
-  // Auto-advance when user navigates to the expected path
   useEffect(() => {
     if (!currentStep?.waitForPath) return
     if (pathname === currentStep.waitForPath) {
@@ -107,7 +104,6 @@ export default function Tutorial() {
     }
   }, [pathname])
 
-  // Track the spotlight target position
   useEffect(() => {
     if (!currentStep?.selector) {
       setRect(null)
@@ -119,7 +115,7 @@ export default function Tutorial() {
     }
     update()
     window.addEventListener('resize', update)
-    window.addEventListener('scroll', update)
+    window.addEventListener('scroll', update, { passive: true })
     return () => {
       window.removeEventListener('resize', update)
       window.removeEventListener('scroll', update)
@@ -128,10 +124,7 @@ export default function Tutorial() {
 
   const advance = useCallback(() => {
     const next = (stepIdx ?? 0) + 1
-    if (next >= STEPS.length) {
-      skip()
-      return
-    }
+    if (next >= STEPS.length) { skip(); return }
     setStepIdx(next)
     localStorage.setItem(STEP_KEY, String(next))
   }, [stepIdx])
@@ -145,38 +138,68 @@ export default function Tutorial() {
 
   if (!visible || !currentStep) return null
 
+  const BG = 'rgba(0,0,0,0.78)'
   const hasSpot = !!rect
+
+  // Spotlight coordinates
+  const sTop    = rect ? rect.top    - PAD : 0
+  const sBottom = rect ? rect.bottom + PAD : 0
+  const sLeft   = rect ? rect.left   - PAD : 0
+  const sRight  = rect ? rect.right  + PAD : 0
+  const sW      = rect ? rect.width  + PAD * 2 : 0
+  const sH      = rect ? rect.height + PAD * 2 : 0
 
   return (
     <>
-      {/* Full-screen dim */}
-      <div
-        className="fixed inset-0 z-[9000] pointer-events-none transition-opacity"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
-      />
-
-      {/* Spotlight cut-out — transparent box with giant box-shadow that dims surroundings */}
-      {hasSpot && rect && (
+      {hasSpot ? (
+        <>
+          {/* Top strip */}
+          <div
+            className="fixed inset-x-0 top-0 z-[9000]"
+            style={{ height: Math.max(0, sTop), background: BG, pointerEvents: 'all' }}
+          />
+          {/* Bottom strip */}
+          <div
+            className="fixed inset-x-0 bottom-0 z-[9000]"
+            style={{ top: sBottom, background: BG, pointerEvents: 'all' }}
+          />
+          {/* Left strip */}
+          <div
+            className="fixed left-0 z-[9000]"
+            style={{ top: sTop, height: sH, width: Math.max(0, sLeft), background: BG, pointerEvents: 'all' }}
+          />
+          {/* Right strip */}
+          <div
+            className="fixed right-0 z-[9000]"
+            style={{ top: sTop, height: sH, left: sRight, background: BG, pointerEvents: 'all' }}
+          />
+          {/* White glow ring around target — purely visual, no pointer events */}
+          <div
+            className="fixed z-[9001] rounded-md pointer-events-none"
+            style={{
+              top: sTop,
+              left: sLeft,
+              width: sW,
+              height: sH,
+              outline: '2px solid white',
+              outlineOffset: '2px',
+              boxShadow: '0 0 16px 4px rgba(255,255,255,0.25)',
+            }}
+          />
+        </>
+      ) : (
+        /* Full-screen block when no spotlight target */
         <div
-          className="fixed z-[9001] pointer-events-none rounded-lg transition-all duration-300"
-          style={{
-            top: rect.top - 10,
-            left: rect.left - 14,
-            width: rect.width + 28,
-            height: rect.height + 20,
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
-            outline: '2px solid rgba(255,255,255,0.35)',
-            outlineOffset: '2px',
-          }}
+          className="fixed inset-0 z-[9000]"
+          style={{ background: BG, pointerEvents: 'all' }}
         />
       )}
 
-      {/* Tutorial box — always bottom-left */}
+      {/* Tutorial panel — always bottom-left, always above overlay */}
       <div
         className="fixed bottom-6 left-6 z-[9002] w-80 bg-white border border-slate-200 rounded-md shadow-2xl overflow-hidden"
         style={{ pointerEvents: 'all' }}
       >
-        {/* Header bar — skip is ALWAYS here */}
         <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100">
           <div className="flex items-center gap-1.5">
             <Compass className="w-3.5 h-3.5 text-slate-400" />
@@ -188,8 +211,7 @@ export default function Tutorial() {
             onClick={skip}
             className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors px-2 py-1 rounded hover:bg-slate-200"
           >
-            <X className="w-3 h-3" />
-            Skip
+            <X className="w-3 h-3" /> Skip
           </button>
         </div>
 
@@ -197,7 +219,6 @@ export default function Tutorial() {
           <p className="text-sm font-semibold text-slate-900 mb-2">{currentStep.title}</p>
           <p className="text-sm text-slate-500 leading-relaxed mb-4">{currentStep.desc}</p>
 
-          {/* Welcome step */}
           {currentStep.isWelcome && (
             <div className="flex gap-2">
               <button
@@ -215,7 +236,6 @@ export default function Tutorial() {
             </div>
           )}
 
-          {/* Step waiting for user navigation */}
           {!currentStep.isWelcome && !currentStep.isDone && currentStep.waitForPath && (
             <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
               <ArrowRight className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -223,7 +243,6 @@ export default function Tutorial() {
             </div>
           )}
 
-          {/* Informational step — just a Next button */}
           {!currentStep.isWelcome && !currentStep.isDone && !currentStep.waitForPath && (
             <button
               onClick={advance}
@@ -233,7 +252,6 @@ export default function Tutorial() {
             </button>
           )}
 
-          {/* Done step */}
           {currentStep.isDone && (
             <a
               href="/learn"
