@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Zap, ArrowRight, CheckCircle2, BookOpen, MessageSquare,
@@ -10,6 +12,7 @@ import {
 import Navbar from '@/components/Navbar'
 import PricingSection from '@/components/PricingSection'
 import AiTutor from '@/components/AiTutor'
+import { supabase } from '@/lib/supabase'
 
 const FEATURES = [
   {
@@ -154,6 +157,20 @@ const COMPARISON_FEATURES = [
 ]
 
 export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // If Supabase redirects OAuth tokens to the homepage instead of /auth/callback,
+    // detect the session here and forward to dashboard.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) router.replace('/dashboard')
+    })
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace('/dashboard')
+    })
+    return () => subscription.unsubscribe()
+  }, [router])
+
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
