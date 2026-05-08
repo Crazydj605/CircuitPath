@@ -1,39 +1,29 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-function CallbackHandler() {
+export default function AuthCallback() {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const code = searchParams.get('code')
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        router.replace(error ? '/' : '/dashboard')
-      })
-    } else {
-      router.replace('/')
-    }
-  }, [router, searchParams])
+    // With implicit flow, Supabase processes the #access_token hash automatically
+    // and fires onAuthStateChange. We just wait for the session to appear.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) { router.replace('/dashboard'); return }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) router.replace('/dashboard')
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
       <p className="text-slate-500 text-sm">Signing you in...</p>
     </div>
-  )
-}
-
-export default function AuthCallback() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <p className="text-slate-500 text-sm">Loading...</p>
-      </div>
-    }>
-      <CallbackHandler />
-    </Suspense>
   )
 }
