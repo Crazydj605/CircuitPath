@@ -11,8 +11,8 @@ function CallbackHandler() {
   useEffect(() => {
     const code = searchParams.get('code')
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(() => {
-        router.replace('/dashboard')
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        router.replace(error ? '/' : '/dashboard')
       })
     } else {
       router.replace('/')
