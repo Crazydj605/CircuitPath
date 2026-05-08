@@ -156,9 +156,9 @@ export default function PricingSection() {
               <span className="text-slate-400 text-xs mr-1 hidden sm:inline">Ends in</span>
               <div className="flex items-end gap-2">
                 <TimerBlock value={countdown.h} label="hrs" />
-                <span className="text-white text-xl font-bold pb-5">:</span>
+                <span className="text-white text-xl font-bold mb-5 self-start mt-2">:</span>
                 <TimerBlock value={countdown.m} label="min" />
-                <span className="text-white text-xl font-bold pb-5">:</span>
+                <span className="text-white text-xl font-bold mb-5 self-start mt-2">:</span>
                 <TimerBlock value={countdown.s} label="sec" />
               </div>
             </div>

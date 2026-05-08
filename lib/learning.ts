@@ -151,6 +151,17 @@ export async function submitStepCheck(params: {
 
   if (checkError) return { error: checkError }
 
+  // Award 50 XP on first correct step completion
+  if (!existing && params.isCorrect) {
+    const sourceId = `step_${params.stepId}`
+    const { error: logError } = await supabase
+      .from('learning_xp_log')
+      .insert({ user_id: user.id, source_id: sourceId, xp_amount: 50 })
+    if (!logError) {
+      await supabase.rpc('increment_user_xp', { p_user_id: user.id, p_amount: 50 })
+    }
+  }
+
   const { data: streak } = await supabase
     .from('learning_user_streaks')
     .select('*')
@@ -197,23 +208,24 @@ export async function submitStepCheck(params: {
 export async function getDashboardData(): Promise<{
   lessons: LessonWithProgress[]
   streak: LearningUserStreak | null
+  xp: number
 }> {
   const lessons = await getLessonLibrary()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { lessons, streak: null }
+  if (!user) return { lessons, streak: null, xp: 0 }
 
-  const { data: streak } = await supabase
-    .from('learning_user_streaks')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  const [{ data: streak }, { data: profile }] = await Promise.all([
+    supabase.from('learning_user_streaks').select('*').eq('user_id', user.id).maybeSingle(),
+    supabase.from('profiles').select('xp').eq('id', user.id).maybeSingle(),
+  ])
 
   return {
     lessons,
     streak: (streak as LearningUserStreak | null) || null,
+    xp: profile?.xp ?? 0,
   }
 }
 

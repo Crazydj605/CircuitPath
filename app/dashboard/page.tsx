@@ -7,6 +7,7 @@ import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
+import { getRank, getNextRank, getProgressPercent } from '@/lib/xp'
 import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } from '@/types'
 
 export default function Dashboard() {
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [lessons, setLessons] = useState<Array<LearningLesson & { progress: LearningUserLessonProgress | null }>>([])
   const [streak, setStreak] = useState<LearningUserStreak | null>(null)
+  const [xp, setXp] = useState(0)
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -24,6 +26,7 @@ export default function Dashboard() {
       const data = await getDashboardData()
       setLessons(data.lessons)
       setStreak(data.streak)
+      setXp(data.xp)
       setLoading(false)
 
       // Always show tour for the owner account; show once for new users
@@ -50,6 +53,9 @@ export default function Dashboard() {
   const username = user?.email?.split('@')[0] || 'Learner'
   const currentStreak = streak?.current_streak_days ?? 0
   const bestStreak = streak?.longest_streak_days ?? 0
+  const rank = getRank(xp)
+  const nextRank = getNextRank(xp)
+  const progressPct = getProgressPercent(xp)
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -214,6 +220,36 @@ export default function Dashboard() {
 
             {/* Sidebar */}
             <div className="space-y-5">
+
+              {/* XP Rank card */}
+              <div className="bg-white border border-slate-200 rounded-md p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-amber-500" />
+                    <h3 className="font-semibold text-slate-900">XP & Rank</h3>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rank.bg} ${rank.color}`}>
+                    {rank.name}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1.5 mb-3">
+                  <span className="text-3xl font-bold text-slate-900">{xp}</span>
+                  <span className="text-sm text-slate-400">XP</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2 mb-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${rank.bar}`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                {nextRank ? (
+                  <p className="text-xs text-slate-400">
+                    {nextRank.minXp - xp} XP to <span className={`font-medium ${nextRank.color}`}>{nextRank.name}</span>
+                  </p>
+                ) : (
+                  <p className="text-xs text-amber-600 font-medium">Max rank reached!</p>
+                )}
+              </div>
 
               {/* Streak card */}
               <div className="bg-white border border-slate-200 rounded-md p-5">
