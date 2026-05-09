@@ -47,7 +47,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [isComplete, loading, stepIndex, steps, lesson, progress, completedSteps])
+  }, [isComplete, loading, stepIndex, steps, lesson, progress])
 
   useEffect(() => {
     const bootstrap = async () => {
