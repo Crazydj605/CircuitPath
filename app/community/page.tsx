@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Users, MessageSquare, Trophy, TrendingUp, Heart, Share2, MessageCircle, Target, Flame, ArrowRight, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
+import WeeklyChallenge from '@/components/WeeklyChallenge'
 
 const AVATAR_COLORS = [
   'bg-violet-100 text-violet-700',
@@ -149,6 +150,9 @@ export default function Community() {
 
             {/* Main feed */}
             <div className="lg:col-span-2 space-y-4">
+
+              {/* Weekly Challenge */}
+              <WeeklyChallenge />
 
               {/* Post composer */}
               <div className="bg-white border border-slate-200 rounded-md p-4">
