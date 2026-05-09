@@ -51,6 +51,7 @@ export interface LearningLessonStep {
   code_snippet: string | null
   checkpoint_prompt: string | null
   checkpoint_answer: string | null
+  checkpoint_teach_md: string | null
   troubleshooting_md: string
   expected_outcome: string
 }

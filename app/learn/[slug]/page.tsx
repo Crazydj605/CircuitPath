@@ -284,54 +284,67 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
             )}
 
             {/* Checkpoint */}
-            <div className={`p-4 rounded-md border transition-colors ${
-              checkpointResult === 'correct'
-                ? 'bg-green-50 border-green-200'
-                : checkpointResult === 'retry'
-                ? 'bg-amber-50 border-amber-200'
-                : 'bg-slate-50 border-slate-200'
-            }`}>
-              <p className="text-sm font-semibold text-slate-900 mb-1">Checkpoint</p>
-              <p className="text-sm text-slate-500 mb-4">
-                {activeStep.checkpoint_prompt || 'Have you completed this step?'}
-              </p>
-
-              {checkpointResult === 'idle' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => checkAnswerDirect('yes')}
-                    className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
-                  >
-                    Yes, done ✓
-                  </button>
-                  <button
-                    onClick={() => checkAnswerDirect('no')}
-                    className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
-                  >
-                    Not yet
-                  </button>
-                </div>
-              )}
-
-              {checkpointResult === 'correct' && (
-                <p className="text-sm text-green-700 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" /> Great work — move to the next step!
-                </p>
-              )}
-
-              {checkpointResult === 'retry' && (
-                <div>
-                  <p className="text-sm text-amber-700 mb-3">
-                    No worries — check the troubleshooting tip below, then try again when ready.
+            <div className="rounded-md border border-slate-200 overflow-hidden">
+              {/* Teaching section */}
+              {activeStep.checkpoint_teach_md && (
+                <div className="p-4 bg-slate-50 border-b border-slate-200">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Before you answer</p>
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                    {activeStep.checkpoint_teach_md}
                   </p>
-                  <button
-                    onClick={() => setCheckpointResult('idle')}
-                    className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 transition-colors"
-                  >
-                    Try again
-                  </button>
                 </div>
               )}
+
+              {/* Question + buttons */}
+              <div className={`p-4 transition-colors ${
+                checkpointResult === 'correct'
+                  ? 'bg-green-50'
+                  : checkpointResult === 'retry'
+                  ? 'bg-amber-50'
+                  : 'bg-white'
+              }`}>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Checkpoint</p>
+                <p className="text-sm font-medium text-slate-900 mb-4">
+                  {activeStep.checkpoint_prompt || 'Did this step make sense?'}
+                </p>
+
+                {checkpointResult === 'idle' && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => checkAnswerDirect('yes')}
+                      className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => checkAnswerDirect('no')}
+                      className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                    >
+                      No
+                    </button>
+                  </div>
+                )}
+
+                {checkpointResult === 'correct' && (
+                  <p className="text-sm text-green-700 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" /> Great work — move to the next step!
+                  </p>
+                )}
+
+                {checkpointResult === 'retry' && (
+                  <div>
+                    <p className="text-sm text-amber-700 mb-3">
+                      No worries — re-read the explanation above, check the troubleshooting tip below, then try again.
+                    </p>
+                    <button
+                      onClick={() => setCheckpointResult('idle')}
+                      className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 transition-colors"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Troubleshooting */}
