@@ -254,9 +254,9 @@ export default function Community() {
                   </div>
                 </motion.div>
               ))}
-            </div>
 
             </>}
+            </div>
 
             {/* Sidebar */}
             <div className="space-y-5">
