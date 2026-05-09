@@ -1,12 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap } from 'lucide-react'
+import ShareCard from '@/components/ShareCard'
 import Navbar from '@/components/Navbar'
 import { RenderMd } from '@/components/RenderMd'
+import AiTutor from '@/components/AiTutor'
 import { supabase } from '@/lib/supabase'
+import confetti from 'canvas-confetti'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
 import type { LearningLesson, LearningLessonStep, LearningUserLessonProgress } from '@/types'
 
@@ -30,6 +33,18 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   const [copied, setCopied] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [userTier, setUserTier] = useState<string>('free')
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (isComplete || loading) return
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'ArrowLeft') goBack()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [isComplete, loading, stepIndex, steps, lesson, progress, completedSteps])
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -99,6 +114,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     setCheckpointResult('idle')
     if (stepIndex === steps.length - 1) {
       setIsComplete(true)
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#1e293b', '#f59e0b', '#10b981', '#3b82f6'] })
     } else {
       setStepIndex(nextIndex)
     }
@@ -236,7 +252,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
               <p className="text-slate-600 mb-6 leading-relaxed text-sm">
                 Great work! Every completed lesson builds your streak and XP. Keep the momentum going!
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                 <Link
                   href="/learn"
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
@@ -255,6 +271,9 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 >
                   Dashboard
                 </Link>
+              </div>
+              <div className="border-t border-slate-100 pt-6">
+                <ShareCard lessonTitle={lesson.title} steps={steps.length} xp={steps.length * 50} />
               </div>
             </div>
           </div>
@@ -470,6 +489,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </div>
+      <AiTutor />
     </main>
   )
 }
