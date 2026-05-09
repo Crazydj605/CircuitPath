@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Code2, BookOpen, ChevronRight } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
+import AiCodeReviewer from '@/components/AiCodeReviewer'
 
 type CodeStep = { step_index: number; title: string; code_snippet: string }
 type LessonGroup = { slug: string; title: string; difficulty: string; steps: CodeStep[] }
@@ -120,6 +121,7 @@ export default function CodeReference() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [lessons, setLessons] = useState<LessonGroup[]>([])
+  const [userTier, setUserTier] = useState('free')
   const didScroll = useRef(false)
 
   useEffect(() => {
@@ -127,10 +129,11 @@ export default function CodeReference() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/'); return }
 
-      const { data: lessonData } = await supabase
-        .from('learning_lessons')
-        .select('id, slug, title, difficulty, order_index')
-        .order('order_index')
+      const [{ data: profileData }, { data: lessonData }] = await Promise.all([
+        supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
+        supabase.from('learning_lessons').select('id, slug, title, difficulty, order_index').order('order_index'),
+      ])
+      setUserTier(profileData?.subscription_tier || 'free')
 
       if (!lessonData) { setLoading(false); return }
 
@@ -202,6 +205,9 @@ export default function CodeReference() {
             Every sketch from every lesson, explained line by line. Understand not just what the code does — but why each line is there.
           </p>
         </div>
+
+        {/* AI Code Reviewer */}
+        <AiCodeReviewer userTier={userTier} />
 
         <div className="flex gap-8">
 
