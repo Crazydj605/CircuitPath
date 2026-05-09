@@ -7,6 +7,7 @@ import { Users, MessageSquare, Trophy, TrendingUp, Heart, Share2, MessageCircle,
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import WeeklyChallenge from '@/components/WeeklyChallenge'
+import ShowcaseGallery from '@/components/ShowcaseGallery'
 
 const AVATAR_COLORS = [
   'bg-violet-100 text-violet-700',
@@ -84,6 +85,7 @@ export default function Community() {
   const [loading, setLoading] = useState(true)
   const [postText, setPostText] = useState('')
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
+  const [activeTab, setActiveTab] = useState<'feed' | 'showcase'>('feed')
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -150,6 +152,26 @@ export default function Community() {
 
             {/* Main feed */}
             <div className="lg:col-span-2 space-y-4">
+
+              {/* Tabs */}
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-md w-fit">
+                <button
+                  onClick={() => setActiveTab('feed')}
+                  className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${activeTab === 'feed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Feed
+                </button>
+                <button
+                  onClick={() => setActiveTab('showcase')}
+                  className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${activeTab === 'showcase' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Showcase
+                </button>
+              </div>
+
+              {activeTab === 'showcase' && <ShowcaseGallery />}
+
+              {activeTab === 'feed' && <>
 
               {/* Weekly Challenge */}
               <WeeklyChallenge />
@@ -233,6 +255,8 @@ export default function Community() {
                 </motion.div>
               ))}
             </div>
+
+            </>}
 
             {/* Sidebar */}
             <div className="space-y-5">
