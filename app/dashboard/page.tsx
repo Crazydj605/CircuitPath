@@ -13,6 +13,7 @@ import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } f
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [userTier, setUserTier] = useState<string>('free')
   const [loading, setLoading] = useState(true)
   const [lessons, setLessons] = useState<Array<LearningLesson & { progress: LearningUserLessonProgress | null }>>([])
   const [streak, setStreak] = useState<LearningUserStreak | null>(null)
@@ -23,10 +24,14 @@ export default function Dashboard() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/'); return }
       setUser(session.user)
-      const data = await getDashboardData()
+      const [data, profileResult] = await Promise.all([
+        getDashboardData(),
+        supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
+      ])
       setLessons(data.lessons)
       setStreak(data.streak)
       setXp(data.xp)
+      setUserTier(profileResult.data?.subscription_tier || 'free')
       setLoading(false)
 
       // Always show tour for the owner account; show once for new users
@@ -298,6 +303,25 @@ export default function Dashboard() {
                   <p className="text-sm text-slate-400">No lessons loaded yet.</p>
                 )}
               </div>
+
+              {/* Upgrade nudge — free users only */}
+              {userTier === 'free' && (
+                <div className="bg-slate-900 rounded-md p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <p className="text-white font-semibold text-sm">Go Pro</p>
+                  </div>
+                  <p className="text-slate-400 text-xs leading-relaxed mb-4">
+                    Unlock all lessons, new content every month, and community challenges.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="block w-full text-center py-2 bg-white text-slate-900 rounded text-xs font-semibold hover:bg-slate-100 transition-colors"
+                  >
+                    See Pro plans
+                  </Link>
+                </div>
+              )}
 
               {/* Quick links */}
               <div className="bg-white border border-slate-200 rounded-md p-5">

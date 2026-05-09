@@ -16,12 +16,12 @@ const AVATAR_COLORS = [
   'bg-cyan-100 text-cyan-700',
 ]
 
-const LEADERBOARD = [
+const TOP_LEARNERS = [
   { rank: 1, name: 'Alex Chen', xp: 12500, streak: 45, avatar: 'A' },
   { rank: 2, name: 'Sarah Miller', xp: 11200, streak: 32, avatar: 'S' },
   { rank: 3, name: 'James Wilson', xp: 10800, streak: 28, avatar: 'J' },
-  { rank: 4, name: 'You', xp: 1240, streak: 5, avatar: 'Y', isUser: true },
-  { rank: 5, name: 'Maria Garcia', xp: 9800, streak: 21, avatar: 'M' },
+  { rank: 4, name: 'Maria Garcia', xp: 9800, streak: 21, avatar: 'M' },
+  { rank: 5, name: 'David Park', xp: 9100, streak: 18, avatar: 'D' },
 ]
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉']
@@ -77,14 +77,22 @@ const CHALLENGES = [
 export default function Community() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [userXp, setUserXp] = useState(0)
+  const [userStreak, setUserStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const [postText, setPostText] = useState('')
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/'); return }
       setUser(session.user)
+      const [profileResult, streakResult] = await Promise.all([
+        supabase.from('profiles').select('xp').eq('id', session.user.id).maybeSingle(),
+        supabase.from('learning_user_streaks').select('current_streak_days').eq('user_id', session.user.id).maybeSingle(),
+      ])
+      setUserXp(profileResult.data?.xp || 0)
+      setUserStreak(streakResult.data?.current_streak_days || 0)
       setLoading(false)
     })
   }, [router])
@@ -229,12 +237,10 @@ export default function Community() {
                   <h3 className="font-semibold text-slate-900">Leaderboard</h3>
                 </div>
                 <div className="space-y-2">
-                  {LEADERBOARD.map((entry, i) => (
+                  {TOP_LEARNERS.map((entry, i) => (
                     <div
                       key={entry.rank}
-                      className={`flex items-center gap-3 p-2.5 rounded-md ${
-                        entry.isUser ? 'bg-slate-100 border border-slate-200' : 'hover:bg-slate-50'
-                      }`}
+                      className="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50"
                     >
                       <span className="w-6 text-center text-sm">
                         {i < 3 ? RANK_MEDALS[i] : <span className="text-slate-400 font-medium">{entry.rank}</span>}
@@ -243,9 +249,7 @@ export default function Community() {
                         {entry.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm truncate font-medium ${entry.isUser ? 'text-slate-900' : 'text-slate-700'}`}>
-                          {entry.name}
-                        </p>
+                        <p className="text-sm truncate font-medium text-slate-700">{entry.name}</p>
                         <p className="text-xs text-slate-400">{entry.xp.toLocaleString()} XP</p>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-amber-500">
@@ -254,6 +258,23 @@ export default function Community() {
                       </div>
                     </div>
                   ))}
+                  {/* Real user row */}
+                  <div className="flex items-center gap-3 p-2.5 rounded-md bg-slate-100 border border-slate-200 mt-1">
+                    <span className="w-6 text-center text-xs text-slate-400 font-medium">—</span>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-slate-200 text-slate-700">
+                      {user?.email?.[0]?.toUpperCase() || 'Y'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate font-semibold text-slate-900">
+                        {user?.email?.split('@')[0] || 'You'} <span className="text-xs font-normal text-slate-400">(you)</span>
+                      </p>
+                      <p className="text-xs text-slate-400">{userXp.toLocaleString()} XP</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-amber-500">
+                      <Flame className="w-3 h-3" />
+                      {userStreak}
+                    </div>
+                  </div>
                 </div>
               </div>
 

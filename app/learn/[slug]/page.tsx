@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2 } from 'lucide-react'
+import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import { RenderMd } from '@/components/RenderMd'
 import { supabase } from '@/lib/supabase'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
 import type { LearningLesson, LearningLessonStep, LearningUserLessonProgress } from '@/types'
@@ -28,17 +29,22 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   const [checkpointResult, setCheckpointResult] = useState<'idle' | 'correct' | 'retry'>('idle')
   const [copied, setCopied] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  const [userTier, setUserTier] = useState<string>('free')
 
   useEffect(() => {
     const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/'); return }
-      const data = await getLessonBySlug(params.slug)
+      const [data, profileResult] = await Promise.all([
+        getLessonBySlug(params.slug),
+        supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
+      ])
       setLesson(data.lesson)
       setSteps(data.steps)
       setProgress(data.progress)
       setStepIndex(data.progress?.current_step_index || 0)
       if (data.progress?.status === 'completed') setIsComplete(true)
+      setUserTier(profileResult.data?.subscription_tier || 'free')
       setLoading(false)
     }
     bootstrap()
@@ -119,6 +125,71 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     )
   }
 
+  // Tier gating
+  const canAccess = (() => {
+    if (!lesson) return true
+    if (lesson.required_tier === 'free') return true
+    if (lesson.required_tier === 'pro') return userTier === 'pro' || userTier === 'premium' || userTier === 'max'
+    if (lesson.required_tier === 'max') return userTier === 'max' || userTier === 'premium'
+    return true
+  })()
+
+  if (!loading && lesson && !canAccess) {
+    const tierLabel = lesson.required_tier === 'max' ? 'Max' : 'Pro'
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 pt-28 pb-16">
+          <Link
+            href="/learn"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to library
+          </Link>
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+            <div className="bg-slate-900 px-6 py-8 text-center">
+              <div className="w-14 h-14 bg-white/10 rounded-md flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-7 h-7 text-white" />
+              </div>
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-2">{tierLabel} Lesson</p>
+              <h1 className="text-xl font-bold text-white mb-1">{lesson.title}</h1>
+              <p className="text-slate-400 text-sm">{lesson.summary}</p>
+            </div>
+            <div className="p-8">
+              <p className="text-slate-700 font-medium mb-5">Upgrade to {tierLabel} to unlock this lesson and everything below it:</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Full lesson library — all current and future lessons',
+                  'Step checkpoints with real teaching explanations',
+                  'Troubleshooting guides for every step',
+                  'Progress tracking, XP, and streak tools',
+                  'New lessons added every month',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600">
+                    <Zap className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/pricing"
+                className="block w-full text-center py-3 bg-slate-900 text-white rounded-md font-semibold text-sm hover:bg-slate-800 transition-colors mb-3"
+              >
+                Upgrade to {tierLabel} — Unlock Everything
+              </Link>
+              <Link
+                href="/learn"
+                className="block w-full text-center py-2.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                Back to free lessons
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   if (!lesson || steps.length === 0 || !activeStep) {
     return (
       <main className="min-h-screen bg-slate-50">
@@ -152,8 +223,18 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
               <p className="text-slate-400 text-sm">{lesson.title}</p>
             </div>
             <div className="p-8">
-              <p className="text-slate-600 mb-6 leading-relaxed">
-                You finished all {steps.length} step{steps.length !== 1 ? 's' : ''}. Every completed lesson builds your streak — keep going!
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-center">
+                  <p className="text-2xl font-bold text-slate-900">{steps.length}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Steps completed</p>
+                </div>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-center">
+                  <p className="text-2xl font-bold text-amber-600">+{steps.length * 50}</p>
+                  <p className="text-xs text-amber-500 mt-0.5">XP earned</p>
+                </div>
+              </div>
+              <p className="text-slate-600 mb-6 leading-relaxed text-sm">
+                Great work! Every completed lesson builds your streak and XP. Keep the momentum going!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
@@ -256,9 +337,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
 
           <div className="p-6 space-y-5">
             {/* Instructions */}
-            <p className="whitespace-pre-line text-slate-600 text-sm leading-relaxed">
-              {activeStep.instruction_md}
-            </p>
+            <RenderMd text={activeStep.instruction_md} />
 
             {/* Code block */}
             {activeStep.code_snippet && (
