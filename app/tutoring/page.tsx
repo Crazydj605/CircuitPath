@@ -34,8 +34,7 @@ export default function TutoringPage() {
     })
   }, [])
 
-  // Replace this URL with your actual Calendly link once set up
-  const CALENDLY_URL = process.env.NEXT_PUBLIC_CALENDLY_URL || ''
+  const CALENDLY_URL = 'https://calendly.com/dominictocco20'
 
   return (
     <main className="min-h-screen bg-white">
