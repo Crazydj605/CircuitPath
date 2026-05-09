@@ -1,12 +1,15 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Zap, Menu, X, User, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Zap, Menu, X, User, LogOut, Settings } from 'lucide-react'
+import Link from 'next/link'
 import { supabase, signOut } from '@/lib/supabase'
 import AuthModal from './AuthModal'
 import Tutorial from './Tutorial'
 
 export default function Navbar() {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -48,6 +51,7 @@ export default function Navbar() {
     await signOut()
     setUser(null)
     setIsMenuOpen(false)
+    router.push('/')
   }
 
   const navLinks = user ? appLinks : publicLinks
@@ -94,6 +98,13 @@ export default function Navbar() {
                     <User className="w-3.5 h-3.5 text-slate-400" />
                     {user.email?.split('@')[0]}
                   </div>
+                  <Link
+                    href="/settings"
+                    className="p-2 hover:bg-slate-100 rounded transition-colors text-slate-500 hover:text-slate-900"
+                    title="Settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Link>
                   <button
                     onClick={handleSignOut}
                     className="p-2 hover:bg-slate-100 rounded transition-colors text-slate-500 hover:text-slate-900"
@@ -141,6 +152,13 @@ export default function Navbar() {
             {user ? (
               <>
                 <p className="py-3 text-sm text-slate-400 border-b border-slate-100">{user.email}</p>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-3 text-sm text-slate-600 hover:text-slate-900 border-b border-slate-100"
+                >
+                  Settings
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="block w-full text-left py-3 text-sm text-red-500 hover:text-red-700"

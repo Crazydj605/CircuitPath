@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star } from 'lucide-react'
+import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star, Settings } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
@@ -307,6 +307,7 @@ export default function Dashboard() {
                     { href: '/learn', icon: BookOpen, label: 'Lesson library' },
                     { href: '/community', icon: Star, label: 'Community' },
                     { href: '/pricing', icon: Star, label: 'Upgrade plan' },
+                    { href: '/settings', icon: Settings, label: 'Settings' },
                   ].map(link => (
                     <Link
                       key={link.href}
