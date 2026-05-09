@@ -25,6 +25,7 @@ export default function Navbar() {
   const appLinks = [
     { label: 'Dashboard', href: '/dashboard', tourId: 'nav-dashboard' },
     { label: 'Learn', href: '/learn', tourId: 'nav-learn' },
+    { label: 'Paths', href: '/paths', tourId: undefined },
     { label: 'Code', href: '/code', tourId: 'nav-code' },
     { label: 'Community', href: '/community', tourId: 'nav-community' },
     { label: 'Pricing', href: '/pricing', tourId: undefined },

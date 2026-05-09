@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
+import ComponentKitLink from '@/components/ComponentKitLink'
 import Navbar from '@/components/Navbar'
 import { RenderMd } from '@/components/RenderMd'
 import AiTutor from '@/components/AiTutor'
@@ -353,6 +354,11 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Component kit link */}
+        <div className="mb-4">
+          <ComponentKitLink slug={params.slug} />
         </div>
 
         {/* Step content */}
