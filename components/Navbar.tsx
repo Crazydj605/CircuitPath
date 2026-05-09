@@ -29,6 +29,8 @@ export default function Navbar() {
     { label: 'Components', href: '/components', tourId: undefined },
     { label: 'Code', href: '/code', tourId: 'nav-code' },
     { label: 'Community', href: '/community', tourId: 'nav-community' },
+    { label: 'Certificates', href: '/certificates', tourId: undefined },
+    { label: 'Tutoring', href: '/tutoring', tourId: undefined },
     { label: 'Pricing', href: '/pricing', tourId: undefined },
   ]
 

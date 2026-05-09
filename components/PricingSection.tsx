@@ -100,16 +100,18 @@ export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
   const [currentTier, setCurrentTier] = useState<'free' | 'pro' | 'max'>('free')
   const [user, setUser] = useState<any>(null)
+  const [userToken, setUserToken] = useState<string | null>(null)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const countdown = useCountdown()
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      if (!user) return
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setUserToken(session?.access_token ?? null)
+      if (!session?.user) return
       const { data: profile } = await supabase
-        .from('profiles').select('subscription_tier').eq('id', user.id).maybeSingle()
+        .from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle()
       const tier = profile?.subscription_tier
       if (tier === 'pro' || tier === 'max') setCurrentTier(tier)
     }
@@ -122,7 +124,7 @@ export default function PricingSection() {
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, billingCycle }),
+        body: JSON.stringify({ tier, billingCycle, userToken }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
