@@ -162,11 +162,17 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 >
                   <BookOpen className="w-4 h-4" /> Next lesson
                 </Link>
+                <button
+                  onClick={() => { setIsComplete(false); setStepIndex(0); setCheckpointResult('idle') }}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                >
+                  Redo lesson
+                </button>
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
                 >
-                  View dashboard
+                  Dashboard
                 </Link>
               </div>
             </div>
