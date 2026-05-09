@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Users, MessageSquare, Trophy, TrendingUp, Heart, Share2, MessageCircle, Target, Flame, ArrowRight } from 'lucide-react'
+import { Users, MessageSquare, Trophy, TrendingUp, Heart, Share2, MessageCircle, Target, Flame, ArrowRight, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 
@@ -79,6 +79,7 @@ export default function Community() {
   const [user, setUser] = useState<any>(null)
   const [userXp, setUserXp] = useState(0)
   const [userStreak, setUserStreak] = useState(0)
+  const [userBadgeCount, setUserBadgeCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [postText, setPostText] = useState('')
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
@@ -87,12 +88,14 @@ export default function Community() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/'); return }
       setUser(session.user)
-      const [profileResult, streakResult] = await Promise.all([
+      const [profileResult, streakResult, badgeResult] = await Promise.all([
         supabase.from('profiles').select('xp').eq('id', session.user.id).maybeSingle(),
         supabase.from('learning_user_streaks').select('current_streak_days').eq('user_id', session.user.id).maybeSingle(),
+        supabase.from('user_badges').select('id', { count: 'exact' }).eq('user_id', session.user.id),
       ])
       setUserXp(profileResult.data?.xp || 0)
       setUserStreak(streakResult.data?.current_streak_days || 0)
+      setUserBadgeCount(badgeResult.count || 0)
       setLoading(false)
     })
   }, [router])
@@ -270,9 +273,17 @@ export default function Community() {
                       </p>
                       <p className="text-xs text-slate-400">{userXp.toLocaleString()} XP</p>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-amber-500">
-                      <Flame className="w-3 h-3" />
-                      {userStreak}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-xs text-amber-500">
+                        <Flame className="w-3 h-3" />
+                        {userStreak}
+                      </div>
+                      {userBadgeCount > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-slate-400">
+                          <Shield className="w-3 h-3" />
+                          {userBadgeCount}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

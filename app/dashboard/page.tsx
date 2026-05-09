@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
 import DailyChallenge from '@/components/DailyChallenge'
+import BadgesDisplay from '@/components/BadgesDisplay'
 import { getRank, getNextRank, getProgressPercent } from '@/lib/xp'
 import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } from '@/types'
 
@@ -305,6 +306,9 @@ export default function Dashboard() {
                   </Link>
                 </div>
               )}
+
+              {/* Badges */}
+              <BadgesDisplay />
 
               {/* Quick links */}
               <div className="bg-white border border-slate-200 rounded-md p-5">

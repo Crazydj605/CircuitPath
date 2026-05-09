@@ -202,7 +202,63 @@ export async function submitStepCheck(params: {
     }
   )
 
+  // Check for new badges (fire and forget)
+  checkAndAwardBadges(user.id).catch(() => {})
+
   return { error: streakError }
+}
+
+export async function checkAndAwardBadges(userId: string) {
+  const [
+    { data: profile },
+    { data: streak },
+    { data: progress },
+    { data: dailyResponses },
+    { data: allBadges },
+    { data: earnedBadges },
+  ] = await Promise.all([
+    supabase.from('profiles').select('xp').eq('id', userId).maybeSingle(),
+    supabase.from('learning_user_streaks').select('current_streak_days').eq('user_id', userId).maybeSingle(),
+    supabase.from('learning_user_lesson_progress').select('status').eq('user_id', userId).eq('status', 'completed'),
+    supabase.from('daily_challenge_responses').select('is_correct').eq('user_id', userId),
+    supabase.from('badges').select('*'),
+    supabase.from('user_badges').select('badge_id').eq('user_id', userId),
+  ])
+
+  const xp = profile?.xp ?? 0
+  const streakDays = streak?.current_streak_days ?? 0
+  const lessonsCompleted = progress?.length ?? 0
+  const dailyTotal = dailyResponses?.length ?? 0
+  const dailyCorrect = dailyResponses?.filter(r => r.is_correct).length ?? 0
+  const earnedIds = new Set((earnedBadges || []).map((b: any) => b.badge_id))
+  const newBadges: any[] = []
+
+  for (const badge of allBadges || []) {
+    if (earnedIds.has(badge.id)) continue
+    let met = false
+    switch (badge.requirement_type) {
+      case 'lessons_completed': met = lessonsCompleted >= badge.requirement_value; break
+      case 'streak_days':       met = streakDays >= badge.requirement_value; break
+      case 'xp_total':          met = xp >= badge.requirement_value; break
+      case 'daily_challenges':  met = dailyTotal >= badge.requirement_value; break
+      case 'daily_correct':     met = dailyCorrect >= badge.requirement_value; break
+    }
+    if (met) {
+      const { error } = await supabase.from('user_badges').insert({ user_id: userId, badge_id: badge.id })
+      if (!error) newBadges.push(badge)
+    }
+  }
+
+  return newBadges
+}
+
+export async function getUserBadges(userId: string) {
+  const { data } = await supabase
+    .from('user_badges')
+    .select('earned_at, badge:badges(id, slug, name, description, icon, color, category)')
+    .eq('user_id', userId)
+    .order('earned_at', { ascending: false })
+  return (data || []) as Array<{ earned_at: string; badge: any }>
 }
 
 export async function submitDailyChallenge(params: {
@@ -267,6 +323,9 @@ export async function submitDailyChallenge(params: {
     },
     { onConflict: 'user_id' }
   )
+
+  // Check for new badges (fire and forget)
+  checkAndAwardBadges(user.id).catch(() => {})
 
   return { error: null, newStreak: currentStreak }
 }
