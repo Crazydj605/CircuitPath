@@ -7,6 +7,7 @@ import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
+import DailyChallenge from '@/components/DailyChallenge'
 import { getRank, getNextRank, getProgressPercent } from '@/lib/xp'
 import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } from '@/types'
 
@@ -174,25 +175,7 @@ export default function Dashboard() {
               )}
 
               {/* Daily challenge card */}
-              <div className="bg-white border border-slate-200 rounded-md p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 bg-amber-100 rounded flex items-center justify-center shrink-0">
-                    <Flame className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900">Daily Challenge</h3>
-                </div>
-                <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                  Complete one checkpoint in your lesson today. That's it — one step keeps your streak alive and builds real confidence over time.
-                </p>
-                {recommended && (
-                  <Link
-                    href={`/learn/${recommended.slug}`}
-                    className="inline-flex items-center gap-2 text-sm text-slate-700 font-medium hover:text-slate-900 transition-colors"
-                  >
-                    Go to today's lesson <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                )}
-              </div>
+              <DailyChallenge />
 
               {/* Completed lessons */}
               {completed.length > 0 && (

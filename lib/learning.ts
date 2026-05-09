@@ -205,6 +205,72 @@ export async function submitStepCheck(params: {
   return { error: streakError }
 }
 
+export async function submitDailyChallenge(params: {
+  challengeId: string
+  selectedIndex: number
+  isCorrect: boolean
+  localDate: string
+}) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: new Error('Not signed in'), newStreak: null }
+
+  const { error: responseError } = await supabase.from('daily_challenge_responses').insert({
+    user_id: user.id,
+    challenge_id: params.challengeId,
+    selected_index: params.selectedIndex,
+    is_correct: params.isCorrect,
+  })
+
+  if (responseError) return { error: responseError, newStreak: null }
+
+  if (params.isCorrect) {
+    const sourceId = `daily_${params.challengeId}`
+    const { error: logError } = await supabase
+      .from('learning_xp_log')
+      .insert({ user_id: user.id, source_id: sourceId, xp_amount: 25 })
+    if (!logError) {
+      await supabase.rpc('increment_user_xp', { p_user_id: user.id, p_amount: 25 })
+    }
+  }
+
+  const { data: streak } = await supabase
+    .from('learning_user_streaks')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  let currentStreak = 1
+  let longestStreak = 1
+
+  if (streak?.last_activity_date) {
+    if (streak.last_activity_date === params.localDate) {
+      currentStreak = streak.current_streak_days
+      longestStreak = streak.longest_streak_days
+    } else {
+      const lastDate = new Date(`${streak.last_activity_date}T00:00:00`)
+      const todayDate = new Date(`${params.localDate}T00:00:00`)
+      const dayDiff = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000)
+      currentStreak = dayDiff === 1 ? streak.current_streak_days + 1 : 1
+      longestStreak = Math.max(streak.longest_streak_days, currentStreak)
+    }
+  }
+
+  await supabase.from('learning_user_streaks').upsert(
+    {
+      user_id: user.id,
+      current_streak_days: currentStreak,
+      longest_streak_days: longestStreak,
+      last_activity_date: params.localDate,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  )
+
+  return { error: null, newStreak: currentStreak }
+}
+
 export async function getDashboardData(): Promise<{
   lessons: LessonWithProgress[]
   streak: LearningUserStreak | null
