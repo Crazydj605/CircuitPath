@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Zap, Menu, X, User, LogOut, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { supabase, signOut } from '@/lib/supabase'
@@ -11,6 +11,7 @@ import { getRank } from '@/lib/xp'
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -74,16 +75,21 @@ export default function Navbar() {
 
             {/* Desktop nav */}
             <div className="hidden md:flex items-center gap-7">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  data-tour={link.tourId}
-                  className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.href.startsWith('/#')
+                  ? false
+                  : pathname === link.href || pathname.startsWith(link.href + '/')
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    data-tour={link.tourId}
+                    className={`text-sm transition-colors ${isActive ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-900'}`}
+                  >
+                    {link.label}
+                  </a>
+                )
+              })}
             </div>
 
             {/* Right side */}
@@ -145,17 +151,22 @@ export default function Navbar() {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden px-4 pb-4 pt-2 border-t border-slate-200 bg-white">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                data-tour={link.tourId}
-                onClick={() => setIsMenuOpen(false)}
-                className="block py-3 text-sm text-slate-600 hover:text-slate-900 border-b border-slate-100 last:border-0"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = link.href.startsWith('/#')
+                ? false
+                : pathname === link.href || pathname.startsWith(link.href + '/')
+              return (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  data-tour={link.tourId}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-3 text-sm border-b border-slate-100 last:border-0 transition-colors ${isActive ? 'text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  {link.label}
+                </a>
+              )
+            })}
             {user ? (
               <>
                 <p className="py-3 text-sm text-slate-400 border-b border-slate-100">{user.email}</p>
