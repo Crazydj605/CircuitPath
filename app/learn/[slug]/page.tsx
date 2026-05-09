@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
 import ComponentKitLink from '@/components/ComponentKitLink'
+import WokwiSimulator from '@/components/WokwiSimulator'
 import Navbar from '@/components/Navbar'
 import { RenderMd } from '@/components/RenderMd'
 import AiTutor from '@/components/AiTutor'
@@ -522,6 +523,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           )}
         </div>
       </div>
+      <WokwiSimulator slug={params.slug} userTier={userTier} />
       {!isGuest && <AiTutor />}
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </main>
