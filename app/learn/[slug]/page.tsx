@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react'
+import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
@@ -262,12 +262,20 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                     <div className="w-2.5 h-2.5 rounded-full bg-slate-600" />
                     <span className="text-xs text-slate-400 font-mono">Arduino</span>
                   </div>
-                  <button
-                    onClick={copyCode}
-                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
-                  >
-                    {copied ? <><Check className="h-3 w-3 text-green-400" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/code#${params.slug}-${activeStep.step_index}`}
+                      className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors font-medium"
+                    >
+                      <Code2 className="h-3 w-3" /> Understand this code
+                    </Link>
+                    <button
+                      onClick={copyCode}
+                      className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                    >
+                      {copied ? <><Check className="h-3 w-3 text-green-400" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
+                    </button>
+                  </div>
                 </div>
                 <pre className="overflow-auto px-4 py-4 text-xs text-slate-200 font-mono leading-relaxed">
                   {activeStep.code_snippet}
