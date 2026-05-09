@@ -8,6 +8,7 @@ import ShareCard from '@/components/ShareCard'
 import Navbar from '@/components/Navbar'
 import { RenderMd } from '@/components/RenderMd'
 import AiTutor from '@/components/AiTutor'
+import AuthModal from '@/components/AuthModal'
 import { supabase } from '@/lib/supabase'
 import confetti from 'canvas-confetti'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
@@ -33,6 +34,8 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   const [copied, setCopied] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [userTier, setUserTier] = useState<string>('free')
+  const [isGuest, setIsGuest] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
 
   // Keyboard navigation
   useEffect(() => {
@@ -49,7 +52,16 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/'); return }
+      if (!session) {
+        // Guest: load lesson publicly, show step 1 only
+        setIsGuest(true)
+        const data = await getLessonBySlug(params.slug)
+        setLesson(data.lesson)
+        setSteps(data.steps)
+        setStepIndex(0)
+        setLoading(false)
+        return
+      }
       const [data, profileResult] = await Promise.all([
         getLessonBySlug(params.slug),
         supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
@@ -388,68 +400,81 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
             )}
 
             {/* Checkpoint */}
-            <div className="rounded-md border border-slate-200 overflow-hidden">
-              {/* Teaching section */}
-              {activeStep.checkpoint_teach_md && (
-                <div className="p-4 bg-slate-50 border-b border-slate-200">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Before you answer</p>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                    {activeStep.checkpoint_teach_md}
-                  </p>
-                </div>
-              )}
-
-              {/* Question + buttons */}
-              <div className={`p-4 transition-colors ${
-                checkpointResult === 'correct'
-                  ? 'bg-green-50'
-                  : checkpointResult === 'retry'
-                  ? 'bg-amber-50'
-                  : 'bg-white'
-              }`}>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Checkpoint</p>
-                <p className="text-sm font-medium text-slate-900 mb-4">
-                  {activeStep.checkpoint_prompt || 'Did this step make sense?'}
-                </p>
-
-                {checkpointResult === 'idle' && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => checkAnswerDirect('yes')}
-                      className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => checkAnswerDirect('no')}
-                      className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
-                    >
-                      No
-                    </button>
-                  </div>
-                )}
-
-                {checkpointResult === 'correct' && (
-                  <p className="text-sm text-green-700 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" /> Great work — move to the next step!
-                  </p>
-                )}
-
-                {checkpointResult === 'retry' && (
-                  <div>
-                    <p className="text-sm text-amber-700 mb-3">
-                      No worries — re-read the explanation above, check the troubleshooting tip below, then try again.
-                    </p>
-                    <button
-                      onClick={() => setCheckpointResult('idle')}
-                      className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 transition-colors"
-                    >
-                      Try again
-                    </button>
-                  </div>
-                )}
+            {isGuest ? (
+              <div className="rounded-md border border-slate-900 bg-slate-900 p-5 text-center">
+                <p className="text-white font-semibold mb-1">Create a free account to continue</p>
+                <p className="text-slate-400 text-sm mb-4">Track your progress, earn XP, and unlock all {steps.length} steps of this lesson.</p>
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  className="w-full py-2.5 bg-white text-slate-900 text-sm font-semibold rounded-md hover:bg-slate-100 transition-colors"
+                >
+                  Sign up free — it takes 30 seconds
+                </button>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-md border border-slate-200 overflow-hidden">
+                {/* Teaching section */}
+                {activeStep.checkpoint_teach_md && (
+                  <div className="p-4 bg-slate-50 border-b border-slate-200">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Before you answer</p>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                      {activeStep.checkpoint_teach_md}
+                    </p>
+                  </div>
+                )}
+
+                {/* Question + buttons */}
+                <div className={`p-4 transition-colors ${
+                  checkpointResult === 'correct'
+                    ? 'bg-green-50'
+                    : checkpointResult === 'retry'
+                    ? 'bg-amber-50'
+                    : 'bg-white'
+                }`}>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Checkpoint</p>
+                  <p className="text-sm font-medium text-slate-900 mb-4">
+                    {activeStep.checkpoint_prompt || 'Did this step make sense?'}
+                  </p>
+
+                  {checkpointResult === 'idle' && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => checkAnswerDirect('yes')}
+                        className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => checkAnswerDirect('no')}
+                        className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                      >
+                        No
+                      </button>
+                    </div>
+                  )}
+
+                  {checkpointResult === 'correct' && (
+                    <p className="text-sm text-green-700 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" /> Great work — move to the next step!
+                    </p>
+                  )}
+
+                  {checkpointResult === 'retry' && (
+                    <div>
+                      <p className="text-sm text-amber-700 mb-3">
+                        No worries — re-read the explanation above, check the troubleshooting tip below, then try again.
+                      </p>
+                      <button
+                        onClick={() => setCheckpointResult('idle')}
+                        className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 transition-colors"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Troubleshooting */}
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
@@ -469,27 +494,30 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           </div>
 
           {/* Navigation */}
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-            <button
-              onClick={goBack}
-              disabled={stepIndex === 0}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" /> Back
-            </button>
-            <button
-              onClick={goNext}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
-            >
-              {stepIndex === steps.length - 1
-                ? <><CheckCircle2 className="w-4 h-4" /> Finish lesson</>
-                : <>Next step <ArrowRight className="w-4 h-4" /></>
-              }
-            </button>
-          </div>
+          {!isGuest && (
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+              <button
+                onClick={goBack}
+                disabled={stepIndex === 0}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              <button
+                onClick={goNext}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
+              >
+                {stepIndex === steps.length - 1
+                  ? <><CheckCircle2 className="w-4 h-4" /> Finish lesson</>
+                  : <>Next step <ArrowRight className="w-4 h-4" /></>
+                }
+              </button>
+            </div>
+          )}
         </div>
       </div>
-      <AiTutor />
+      {!isGuest && <AiTutor />}
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </main>
   )
 }

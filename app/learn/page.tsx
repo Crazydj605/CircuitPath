@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { BookOpen, CheckCircle2, Clock, Play, Lock, Zap, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import { getLessonLibrary } from '@/lib/learning'
+import { getLessonLibrary, getPublicLessons } from '@/lib/learning'
 import type { LearningLesson, LearningUserLessonProgress } from '@/types'
 
 function difficultyStyle(difficulty: string) {
@@ -29,14 +29,18 @@ export default function Learn() {
   useEffect(() => {
     const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/'); return }
-      setUser(session.user)
-      const [library, profileResult] = await Promise.all([
-        getLessonLibrary(),
-        supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
-      ])
-      setLessons(library)
-      setUserTier(profileResult.data?.subscription_tier || 'free')
+      if (session) {
+        setUser(session.user)
+        const [library, profileResult] = await Promise.all([
+          getLessonLibrary(),
+          supabase.from('profiles').select('subscription_tier').eq('id', session.user.id).maybeSingle(),
+        ])
+        setLessons(library)
+        setUserTier(profileResult.data?.subscription_tier || 'free')
+      } else {
+        const publicLessons = await getPublicLessons()
+        setLessons(publicLessons)
+      }
       setLoading(false)
     }
     bootstrap()
@@ -64,6 +68,23 @@ export default function Learn() {
 
       <div className="pt-20 pb-16">
 
+        {/* Guest sign-up banner */}
+        {!user && (
+          <div className="bg-slate-900 px-4 py-3">
+            <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+              <p className="text-sm text-slate-300">
+                <span className="text-white font-medium">Sign up free</span> to track your progress, earn XP, and keep your streak.
+              </p>
+              <a
+                href="/"
+                className="shrink-0 px-4 py-1.5 bg-white text-slate-900 text-sm font-semibold rounded hover:bg-slate-100 transition-colors"
+              >
+                Get Started
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Header banner */}
         <div className="bg-white border-b border-slate-200 px-4 py-8">
           <div className="max-w-6xl mx-auto">
@@ -75,7 +96,7 @@ export default function Learn() {
         <div className="max-w-6xl mx-auto px-4 mt-6">
 
           {/* Progress bar + stats */}
-          {lessons.length > 0 && (
+          {user && lessons.length > 0 && (
             <div className="bg-white border border-slate-200 rounded-md p-5 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-6 text-sm">
@@ -105,8 +126,8 @@ export default function Learn() {
             </div>
           )}
 
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 mb-5 bg-white border border-slate-200 rounded-md p-1 w-fit">
+          {/* Filter tabs — authenticated users only */}
+          {user && <div className="flex items-center gap-1 mb-5 bg-white border border-slate-200 rounded-md p-1 w-fit">
             {([
               { key: 'all', label: 'All' },
               { key: 'in_progress', label: 'In Progress' },
@@ -125,7 +146,7 @@ export default function Learn() {
                 {tab.label}
               </button>
             ))}
-          </div>
+          </div>}
 
           {/* Lesson grid */}
           {filtered.length > 0 ? (

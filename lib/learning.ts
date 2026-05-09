@@ -42,6 +42,15 @@ export async function getLessonLibrary(): Promise<LessonWithProgress[]> {
   }))
 }
 
+export async function getPublicLessons(): Promise<Array<LearningLesson & { progress: null }>> {
+  const { data: lessons } = await supabase
+    .from('learning_lessons')
+    .select('*')
+    .eq('is_published', true)
+    .order('order_index', { ascending: true })
+  return (lessons || []).map(l => ({ ...(l as LearningLesson), progress: null }))
+}
+
 export async function getLessonBySlug(slug: string): Promise<{
   lesson: LearningLesson | null
   steps: LearningLessonStep[]
@@ -50,7 +59,6 @@ export async function getLessonBySlug(slug: string): Promise<{
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { lesson: null, steps: [], progress: null }
 
   const { data: lesson, error: lessonError } = await supabase
     .from('learning_lessons')
@@ -66,6 +74,15 @@ export async function getLessonBySlug(slug: string): Promise<{
     .select('*')
     .eq('lesson_id', lesson.id)
     .order('step_index', { ascending: true })
+
+  // Skip progress fetch for guests
+  if (!user) {
+    return {
+      lesson: lesson as LearningLesson,
+      steps: (steps || []) as LearningLessonStep[],
+      progress: null,
+    }
+  }
 
   const { data: progress } = await supabase
     .from('learning_user_lesson_progress')
