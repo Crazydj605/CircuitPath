@@ -34,14 +34,28 @@ export async function POST(req: NextRequest) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
-    const userId = session.metadata?.user_id
-    const tier = session.metadata?.tier
-    if (userId && tier) {
-      await db.from('profiles').update({
-        subscription_tier: tier,
-        subscription_status: 'active',
-        stripe_subscription_id: session.subscription,
-      }).eq('id', userId)
+    const type = session.metadata?.type
+
+    if (type === 'certificate') {
+      const userId = session.metadata?.user_id
+      const lessonSlug = session.metadata?.lesson_slug
+      const recipientName = session.metadata?.recipient_name
+      if (userId && lessonSlug && recipientName) {
+        await db.from('certificates').upsert(
+          { user_id: userId, lesson_slug: lessonSlug, recipient_name: recipientName },
+          { onConflict: 'user_id,lesson_slug' },
+        )
+      }
+    } else {
+      const userId = session.metadata?.user_id
+      const tier = session.metadata?.tier
+      if (userId && tier) {
+        await db.from('profiles').update({
+          subscription_tier: tier,
+          subscription_status: 'active',
+          stripe_subscription_id: session.subscription,
+        }).eq('id', userId)
+      }
     }
   }
 

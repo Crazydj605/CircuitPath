@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { Award, Download, Lock, Check, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Award, Download, Check, ChevronRight, CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
@@ -13,6 +13,12 @@ type CompletedLesson = {
   title: string
   completed_at: string
   certificate: { recipient_name: string; issued_at: string } | null
+}
+
+const CERT_PRICE: Record<string, string> = {
+  free: '$4.99',
+  pro: '$1.99',
+  max: 'Free',
 }
 
 function CertificateView({ lesson, name, issuedAt }: { lesson: CompletedLesson; name: string; issuedAt: string }) {
@@ -71,6 +77,7 @@ function CertificateView({ lesson, name, issuedAt }: { lesson: CompletedLesson; 
 
 export default function CertificatesPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [userToken, setUserToken] = useState<string | null>(null)
   const [tier, setTier] = useState<string>('free')
   const [lessons, setLessons] = useState<CompletedLesson[]>([])
@@ -80,6 +87,14 @@ export default function CertificatesPage() {
   const [certData, setCertData] = useState<{ name: string; issuedAt: string } | null>(null)
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState('')
+  const [paidSuccess, setPaidSuccess] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('paid') === '1') {
+      setPaidSuccess(true)
+      router.replace('/certificates')
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     const init = async () => {
@@ -105,19 +120,32 @@ export default function CertificatesPage() {
     if (!selected || !nameInput.trim() || !userToken) return
     setGenerating(true)
     setGenError('')
-    const res = await fetch('/api/certificates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lesson_slug: selected.slug, recipient_name: nameInput.trim(), userToken }),
-    })
-    const d = await res.json()
-    if (res.ok) {
-      setCertData({ name: d.recipient_name, issuedAt: d.issued_at })
-      setLessons(prev => prev.map(l => l.slug === selected.slug ? { ...l, certificate: { recipient_name: d.recipient_name, issued_at: d.issued_at } } : l))
-    } else if (d.error === 'upgrade_required') {
-      setGenError('Certificates are free for Max tier members. Upgrade to Max to generate unlimited certificates.')
+
+    if (tier === 'max') {
+      const res = await fetch('/api/certificates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lesson_slug: selected.slug, recipient_name: nameInput.trim(), userToken }),
+      })
+      const d = await res.json()
+      if (res.ok) {
+        setCertData({ name: d.recipient_name, issuedAt: d.issued_at })
+        setLessons(prev => prev.map(l => l.slug === selected.slug ? { ...l, certificate: { recipient_name: d.recipient_name, issued_at: d.issued_at } } : l))
+      } else {
+        setGenError(d.error || 'Something went wrong')
+      }
     } else {
-      setGenError(d.error || 'Something went wrong')
+      const res = await fetch('/api/stripe/create-cert-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonSlug: selected.slug, recipientName: nameInput.trim(), userToken }),
+      })
+      const d = await res.json()
+      if (d.url) {
+        window.location.href = d.url
+      } else {
+        setGenError(d.error || 'Something went wrong')
+      }
     }
     setGenerating(false)
   }
@@ -157,17 +185,25 @@ export default function CertificatesPage() {
               <h1 className="text-2xl font-bold text-slate-900">Certificates</h1>
             </div>
             <p className="text-slate-500 text-sm ml-10">Download proof of completion for your finished lessons.</p>
-            {tier !== 'max' && (
-              <div className="ml-10 mt-3 inline-flex items-center gap-2 text-xs bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-md">
-                <Lock className="w-3.5 h-3.5" />
-                Certificates are free for Max tier.{' '}
-                <Link href="/pricing" className="font-semibold underline underline-offset-2">Upgrade</Link>
-              </div>
-            )}
+            <div className="ml-10 mt-3 flex items-center gap-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-green-500" /> Max — Free</span>
+              <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-amber-500" /> Pro — $1.99 each</span>
+              <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-slate-400" /> Free — $4.99 each</span>
+            </div>
           </div>
         </div>
 
         <div className="max-w-3xl mx-auto px-4 mt-8">
+          {paidSuccess && (
+            <div className="mb-5 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-md">
+              <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-green-800">Payment received!</p>
+                <p className="text-xs text-green-700 mt-0.5">Your certificate is being issued. Refresh the page in a moment if it doesn't appear below.</p>
+              </div>
+            </div>
+          )}
+
           {lessons.length === 0 ? (
             <div className="text-center py-16 text-slate-400">
               <Award className="w-12 h-12 mx-auto mb-3 text-slate-200" />
@@ -191,7 +227,7 @@ export default function CertificatesPage() {
                     </p>
                     {lesson.certificate && (
                       <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Certificate issued to {lesson.certificate.recipient_name}
+                        <Check className="w-3.5 h-3.5" /> Issued to {lesson.certificate.recipient_name}
                       </p>
                     )}
                   </div>
@@ -211,7 +247,9 @@ export default function CertificatesPage() {
                         onClick={() => { setSelected(lesson); setCertData(null); setNameInput(''); setGenError('') }}
                         className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-colors"
                       >
-                        <Award className="w-3.5 h-3.5" /> Get Certificate
+                        <Award className="w-3.5 h-3.5" />
+                        Get Certificate
+                        {tier !== 'max' && <span className="ml-1 text-amber-300">{CERT_PRICE[tier]}</span>}
                       </button>
                     )}
                   </div>
@@ -220,44 +258,39 @@ export default function CertificatesPage() {
             </div>
           )}
 
-          {/* Certificate name form */}
           {selected && !certData && (
             <div className="mt-6 bg-white border border-slate-200 rounded-md p-5">
               <h3 className="font-semibold text-slate-900 text-sm mb-1">
                 Certificate for: <span className="text-amber-600">{selected.title}</span>
               </h3>
-              <p className="text-xs text-slate-400 mb-4">This name will appear on your certificate. Use your full name exactly as you want it printed.</p>
-              {tier !== 'max' ? (
-                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-md">
-                  <Lock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Max tier required</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Upgrade to Max to generate unlimited certificates for all your completed lessons.</p>
-                    <Link href="/pricing" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-md transition-colors">
-                      Upgrade to Max
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    value={nameInput}
-                    onChange={e => setNameInput(e.target.value)}
-                    placeholder="Full name (e.g. Alex Johnson)"
-                    maxLength={60}
-                    className="w-full text-sm border border-slate-200 rounded-md px-3 py-2.5 focus:outline-none focus:border-slate-400 mb-3"
-                  />
-                  {genError && <p className="text-xs text-red-600 mb-3">{genError}</p>}
-                  <button
-                    onClick={generate}
-                    disabled={!nameInput.trim() || generating}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Award className="w-4 h-4" />
-                    {generating ? 'Generating…' : 'Generate Certificate'}
-                  </button>
-                </>
+              <p className="text-xs text-slate-400 mb-4">This name will appear on your certificate exactly as typed.</p>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                placeholder="Full name (e.g. Alex Johnson)"
+                maxLength={60}
+                className="w-full text-sm border border-slate-200 rounded-md px-3 py-2.5 focus:outline-none focus:border-slate-400 mb-3"
+              />
+              {genError && <p className="text-xs text-red-600 mb-3">{genError}</p>}
+              <button
+                onClick={generate}
+                disabled={!nameInput.trim() || generating}
+                className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Award className="w-4 h-4" />
+                {generating
+                  ? (tier === 'max' ? 'Generating…' : 'Redirecting to payment…')
+                  : tier === 'max'
+                  ? 'Generate Certificate (Free)'
+                  : `Pay ${CERT_PRICE[tier]} & Get Certificate`
+                }
+              </button>
+              {tier !== 'max' && (
+                <p className="mt-2 text-xs text-slate-400">
+                  One-time payment. Certificate is yours forever.{' '}
+                  <Link href="/pricing" className="underline underline-offset-2 hover:text-slate-600">Upgrade to Max</Link> for free certificates.
+                </p>
               )}
             </div>
           )}
