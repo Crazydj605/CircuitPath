@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Zap, Menu, X, User, LogOut, Settings } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { supabase, signOut } from '@/lib/supabase'
 import AuthModal from './AuthModal'
@@ -68,10 +69,8 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <a href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-slate-900 rounded flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
+            <a href={user ? '/dashboard' : '/'} className="flex items-center gap-2">
+              <Image src="/logo.png" alt="CircuitPath" width={40} height={40} className="rounded" priority />
               <span className="text-base font-semibold text-slate-900">CircuitPath</span>
             </a>
 
