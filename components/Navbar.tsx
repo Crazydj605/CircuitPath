@@ -23,7 +23,6 @@ export default function Navbar() {
   ]
 
   const appLinks = [
-    { label: 'Dashboard', href: '/dashboard', tourId: 'nav-dashboard' },
     { label: 'Learn', href: '/learn', tourId: 'nav-learn' },
     { label: 'Paths', href: '/paths', tourId: undefined },
     { label: 'Components', href: '/components', tourId: undefined },
@@ -31,7 +30,6 @@ export default function Navbar() {
     { label: 'Community', href: '/community', tourId: 'nav-community' },
     { label: 'Certificates', href: '/certificates', tourId: undefined },
     { label: 'Tutoring', href: '/tutoring', tourId: undefined },
-    { label: 'Pricing', href: '/pricing', tourId: undefined },
   ]
 
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2.5">
+            <a href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
               <div className="w-7 h-7 bg-slate-900 rounded flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
@@ -78,7 +76,7 @@ export default function Navbar() {
             </a>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-7">
+            <div className="hidden md:flex items-center gap-5">
               {navLinks.map((link) => {
                 const isActive = link.href.startsWith('/#')
                   ? false
