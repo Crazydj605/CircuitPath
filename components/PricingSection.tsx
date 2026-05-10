@@ -18,7 +18,12 @@ function useCountdown() {
       localStorage.setItem(KEY, String(end))
     }
     const tick = () => {
-      const diff = Math.max(0, end - Date.now())
+      let diff = Math.max(0, end - Date.now())
+      if (diff === 0) {
+        end = Date.now() + (11 * 3600 + 47 * 60 + 22) * 1000
+        localStorage.setItem(KEY, String(end))
+        diff = end - Date.now()
+      }
       setTime({
         h: Math.floor(diff / 3_600_000),
         m: Math.floor((diff % 3_600_000) / 60_000),
