@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Award, Download, Check, ChevronRight, CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -75,7 +75,7 @@ function CertificateView({ lesson, name, issuedAt }: { lesson: CompletedLesson; 
   )
 }
 
-export default function CertificatesPage() {
+function CertificatesPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [userToken, setUserToken] = useState<string | null>(null)
@@ -297,5 +297,13 @@ export default function CertificatesPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function CertificatesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="w-8 h-8 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /></div>}>
+      <CertificatesPageInner />
+    </Suspense>
   )
 }
