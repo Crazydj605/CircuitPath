@@ -6,32 +6,32 @@ const KIT_MAP: Record<string, { label: string; components: string; url: string }
   'blink-led': {
     label: 'LED Blink Kit',
     components: '5mm LED, 220Ω resistor',
-    url: 'https://www.amazon.com/s?k=5mm+LED+220+ohm+resistor+arduino+starter',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=5mm+LED+220+ohm+resistor+arduino+starter',
   },
   'button-input': {
     label: 'Button Input Kit',
     components: 'Tactile button, 10kΩ & 220Ω resistors, LED',
-    url: 'https://www.amazon.com/s?k=arduino+pushbutton+10k+resistor+LED+kit',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=arduino+pushbutton+10k+resistor+LED+kit',
   },
   'pwm-fade-led': {
     label: 'PWM LED Kit',
     components: '5mm LED, 220Ω resistor',
-    url: 'https://www.amazon.com/s?k=5mm+LED+220+ohm+resistor+arduino+PWM',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=5mm+LED+220+ohm+resistor+arduino+PWM',
   },
   'servo-motor': {
     label: 'Servo Motor Kit',
     components: 'SG90 micro servo motor',
-    url: 'https://www.amazon.com/s?k=SG90+servo+motor+arduino',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=SG90+servo+motor+arduino',
   },
   'analog-sensor': {
     label: 'Potentiometer Kit',
     components: '10kΩ potentiometer trimmer',
-    url: 'https://www.amazon.com/s?k=10k+potentiometer+trimmer+arduino+kit',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=10k+potentiometer+trimmer+arduino+kit',
   },
   'serial-monitor': {
     label: 'Arduino Starter Kit',
     components: 'Arduino UNO + USB cable',
-    url: 'https://www.amazon.com/s?k=Arduino+UNO+starter+kit+USB+cable',
+    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=Arduino+UNO+starter+kit+USB+cable',
   },
 }
 

@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Zap, ArrowRight, CheckCircle2, BookOpen, MessageSquare,
-  Target, Users, Award, Play, Trophy, TrendingUp,
+  Target, Users, Award, Play, Trophy,
   ExternalLink, ShoppingCart, Cpu, Lightbulb, Layers,
   Star, Flame
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import PricingSection from '@/components/PricingSection'
-import AiTutor from '@/components/AiTutor'
 import { supabase } from '@/lib/supabase'
 
 const FEATURES = [
@@ -23,7 +22,7 @@ const FEATURES = [
   {
     icon: Target,
     title: 'Project-Based Learning',
-    description: 'Build 50+ real projects with step-by-step guidance and troubleshooting support.',
+    description: 'Build real projects with step-by-step guidance and troubleshooting support at every stage.',
   },
   {
     icon: MessageSquare,
@@ -48,34 +47,16 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '50K+', label: 'Active Learners' },
-  { value: '500+', label: 'Lessons & Projects' },
-  { value: '98%', label: 'Completion Rate' },
-  { value: '4.9', label: 'Average Rating' },
+  { value: '6+', label: 'Real Lessons' },
+  { value: '3', label: 'Difficulty Levels' },
+  { value: 'AI', label: 'Powered Tutor' },
+  { value: 'Free', label: 'Plan Available' },
 ]
 
-const TESTIMONIALS = [
-  {
-    quote: "CircuitPath's structured approach took me from complete beginner to building autonomous robots in 6 months. The progression feels natural and each project builds on the last.",
-    author: 'Sarah Chen',
-    role: 'Software Engineer',
-    company: 'Microsoft',
-    rating: 5,
-  },
-  {
-    quote: "The community challenges kept me accountable. Seeing others share their builds motivated me to push through difficult concepts. Worth every penny.",
-    author: 'Marcus Johnson',
-    role: 'Electrical Engineering Student',
-    company: 'MIT',
-    rating: 5,
-  },
-  {
-    quote: "I tried learning from scattered YouTube tutorials for a year with little progress. CircuitPath gave me the structure and component recommendations I needed.",
-    author: 'Elena Rodriguez',
-    role: 'Robotics Technician',
-    company: 'Tesla',
-    rating: 5,
-  },
+const BETA_PERKS = [
+  { emoji: '🎓', title: '3 Months Pro Free', desc: 'Leave a real review of your experience — good or bad — and get 3 months Pro at no cost.' },
+  { emoji: '🔧', title: 'Shape the Platform', desc: 'Your feedback directly influences what we build next. Early users get the most influence.' },
+  { emoji: '🏆', title: 'Founding Member Badge', desc: 'Beta users get an exclusive "Founding Member" badge that will never be available again.' },
 ]
 
 const LEARNING_MILESTONES = [
@@ -123,7 +104,7 @@ const AMAZON_KITS = [
     name: 'Beginner Electronics Kit',
     description: 'Breadboard, resistors, LEDs, wires, and basic components for Foundation level',
     price: '$29.99',
-    link: 'https://amazon.com',
+    link: 'https://www.amazon.com/s?tag=circuitpath-20&k=beginner+electronics+kit+breadboard+LEDs+resistors+jumper+wires',
     level: 'Foundation',
     essentials: ['Breadboard', 'Resistors (220Ω–10kΩ)', 'LEDs (5 colors)', 'Jumper wires', '9V battery clip'],
   },
@@ -131,7 +112,7 @@ const AMAZON_KITS = [
     name: 'Arduino Starter Kit',
     description: 'Arduino Uno, sensors, motors, and components for Programming level',
     price: '$89.99',
-    link: 'https://amazon.com',
+    link: 'https://www.amazon.com/s?tag=circuitpath-20&k=arduino+uno+starter+kit+sensors+servo+motor+LCD',
     level: 'Programming',
     essentials: ['Arduino Uno R3', 'USB cable', 'Temperature sensor', 'Servo motor', 'LCD display'],
   },
@@ -139,7 +120,7 @@ const AMAZON_KITS = [
     name: 'Advanced Robotics Kit',
     description: 'Motors, motor drivers, chassis, and components for Automation level',
     price: '$149.99',
-    link: 'https://amazon.com',
+    link: 'https://www.amazon.com/s?tag=circuitpath-20&k=arduino+robotics+kit+robot+chassis+motor+driver+IR+sensors',
     level: 'Automation',
     essentials: ['Robot chassis', 'DC motors (2)', 'Motor driver', 'IR sensors (5)', 'Wheels & caster'],
   },
@@ -185,7 +166,7 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-sm text-slate-600 mb-8">
               <Zap className="w-3.5 h-3.5 text-slate-500" />
-              Trusted by 50,000+ learners worldwide
+              Now in Early Beta — Join the First Wave
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight tracking-tight">
@@ -201,6 +182,10 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
               <a
                 href="#pricing"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
                 className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded-md font-medium hover:bg-slate-800 transition-colors"
               >
                 Start Learning Free
@@ -208,9 +193,37 @@ export default function Home() {
               </a>
               <a
                 href="#kits"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById('kits')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
                 className="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-700 border border-slate-300 rounded-md font-medium hover:bg-slate-50 transition-colors"
               >
                 View Component Kits
+              </a>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 text-sm">
+              <a
+                href="#why-choose-us"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById('why-choose-us')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                className="text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                Why choose us?
+              </a>
+              <span className="text-slate-300">|</span>
+              <a
+                href="#pricing"
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                className="text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                View Pricing
               </a>
             </div>
 
@@ -273,7 +286,7 @@ export default function Home() {
                 transition={{ delay: idx * 0.1 }}
                 className="text-center p-8 border-r border-slate-100 last:border-r-0"
               >
-                <div className="text-5xl font-bold text-slate-100 mb-5 select-none">{item.step}</div>
+                <div className="text-5xl font-bold text-slate-900 mb-5 select-none">{item.step}</div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-3">{item.title}</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
@@ -469,22 +482,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Comparison */}
-      <section className="py-24 px-4 bg-slate-50">
-        <div className="max-w-3xl mx-auto">
+      {/* Comparison - Why Choose Us */}
+      <section id="why-choose-us" className="py-24 px-4 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">
-              CircuitPath vs. learning from YouTube
+              Why learners choose CircuitPath over YouTube
             </h2>
             <p className="text-slate-500">
               Structured learning with accountability beats scattered tutorials every time.
             </p>
           </div>
+          
+          {/* Feature Cards */}
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            {COMPARISON_FEATURES.slice(0, 4).map((feature, idx) => (
+              <motion.div
+                key={feature}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-white border border-slate-200 rounded-md p-5 flex items-start gap-4"
+              >
+                <div className="w-10 h-10 bg-slate-900 rounded-md flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">{feature}</h3>
+                  <p className="text-sm text-slate-500">Built into every lesson, not an afterthought.</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          {/* Remaining Features List */}
           <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
             <div className="grid grid-cols-3 p-4 border-b border-slate-200 bg-slate-50">
-              <div className="text-sm text-slate-500">Feature</div>
-              <div className="text-center text-sm font-semibold text-slate-900">CircuitPath</div>
-              <div className="text-center text-sm text-slate-400">YouTube</div>
+              <div className="text-sm font-semibold text-slate-700">Feature</div>
+              <div className="text-center text-sm font-bold text-slate-900">CircuitPath ✅</div>
+              <div className="text-center text-sm text-slate-400">YouTube ❌</div>
             </div>
             {COMPARISON_FEATURES.map((name, idx) => (
               <div
@@ -493,9 +530,9 @@ export default function Home() {
                   idx % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
                 }`}
               >
-                <div className="text-sm text-slate-600">{name}</div>
+                <div className="text-sm text-slate-700 font-medium">{name}</div>
                 <div className="flex justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-slate-700" />
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex justify-center">
                   <span className="text-slate-300 text-lg font-light leading-none">—</span>
@@ -506,44 +543,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Beta CTA */}
       <section className="py-24 px-4 bg-white border-y border-slate-100">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">What learners say</h2>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700 mb-6">
+              <Star className="w-3.5 h-3.5 text-amber-500" />
+              Early Beta — Limited Spots
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Be one of our first members</h2>
             <p className="text-slate-500 max-w-xl mx-auto">
-              Real results from real people who started exactly where you are now.
+              CircuitPath is in early beta. Join now, shape the platform, and get rewarded for your honest feedback.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t, idx) => (
+          <div className="grid md:grid-cols-3 gap-5 mb-10">
+            {BETA_PERKS.map((perk, idx) => (
               <motion.div
-                key={t.author}
+                key={perk.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 bg-slate-50 border border-slate-200 rounded-md"
+                className="p-6 bg-slate-50 border border-slate-200 rounded-md text-center"
               >
-                <div className="flex mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-slate-700 text-sm leading-relaxed mb-6">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-slate-200 rounded flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">
-                    {t.author.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{t.author}</p>
-                    <p className="text-xs text-slate-500">
-                      {t.role} · {t.company}
-                    </p>
-                  </div>
-                </div>
+                <div className="text-3xl mb-4">{perk.emoji}</div>
+                <p className="text-sm font-semibold text-slate-900 mb-2">{perk.title}</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{perk.desc}</p>
               </motion.div>
             ))}
+          </div>
+          <div className="text-center">
+            <a
+              href="#pricing"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+              className="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white rounded-md font-medium hover:bg-slate-800 transition-colors"
+            >
+              Join the Beta Free
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </a>
+            <p className="mt-3 text-xs text-slate-400">No credit card required. Start on the free plan today.</p>
           </div>
         </div>
       </section>
@@ -564,6 +605,10 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="#pricing"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               className="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-900 rounded-md font-medium hover:bg-slate-100 transition-colors"
             >
               Choose Your Plan
@@ -571,6 +616,10 @@ export default function Home() {
             </a>
             <a
               href="#kits"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('kits')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               className="inline-flex items-center justify-center px-6 py-3 bg-transparent text-white border border-slate-700 rounded-md font-medium hover:bg-slate-800 transition-colors"
             >
               Browse Component Kits
@@ -603,8 +652,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      <AiTutor />
     </main>
   )
 }
