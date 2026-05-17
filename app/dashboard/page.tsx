@@ -309,6 +309,23 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-400">
                   Last active: {streak?.last_activity_date || 'Not yet'}
                 </p>
+
+                {(streak?.freezes_available ?? 0) > 0 && (
+                  <div className="mt-3 flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-200 rounded-md">
+                    <span className="text-lg">🛡️</span>
+                    <div className="flex-1 text-xs">
+                      <p className="font-semibold text-slate-800">
+                        {streak!.freezes_available} streak freeze{(streak!.freezes_available ?? 0) > 1 ? 's' : ''} ready
+                      </p>
+                      <p className="text-slate-500">Auto-protects your streak if you miss a day.</p>
+                    </div>
+                  </div>
+                )}
+                {(streak?.freezes_available ?? 0) === 0 && (currentStreak ?? 0) > 0 && (
+                  <p className="mt-2 text-xs text-slate-400">
+                    🛡️ Earn a streak freeze every 7-day milestone.
+                  </p>
+                )}
               </div>
 
               {/* Progress card */}

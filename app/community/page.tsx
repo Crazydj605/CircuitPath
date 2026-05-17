@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import WeeklyChallenge from '@/components/WeeklyChallenge'
 import ShowcaseGallery from '@/components/ShowcaseGallery'
+import WeeklyLeaderboard from '@/components/WeeklyLeaderboard'
 
 const AVATAR_COLORS = [
   'bg-violet-100 text-violet-700',
@@ -112,6 +113,9 @@ export default function Community() {
               {activeTab === 'showcase' && <ShowcaseGallery />}
 
               {activeTab === 'feed' && <>
+
+              {/* Weekly leaderboard */}
+              <WeeklyLeaderboard />
 
               {/* Weekly Challenge */}
               <WeeklyChallenge />

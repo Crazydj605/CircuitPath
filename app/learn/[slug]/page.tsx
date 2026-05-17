@@ -238,8 +238,13 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   }
 
   // Tier gating
+  // Early-access window: any lesson with max_only_until in the future is Max-only.
+  const isInEarlyAccessWindow =
+    !!lesson?.max_only_until && new Date(lesson.max_only_until) > new Date()
+
   const canAccess = (() => {
     if (!lesson) return true
+    if (isInEarlyAccessWindow) return userTier === 'max' || userTier === 'premium'
     if (lesson.required_tier === 'free') return true
     if (lesson.required_tier === 'pro') return userTier === 'pro' || userTier === 'premium' || userTier === 'max'
     if (lesson.required_tier === 'max') return userTier === 'max' || userTier === 'premium'
@@ -247,7 +252,11 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   })()
 
   if (!loading && lesson && !canAccess) {
-    const tierLabel = lesson.required_tier === 'max' ? 'Max' : 'Pro'
+    const tierLabel = isInEarlyAccessWindow
+      ? 'Max (early access)'
+      : lesson.required_tier === 'max'
+      ? 'Max'
+      : 'Pro'
     return (
       <main className="min-h-screen bg-slate-50">
         <Navbar />

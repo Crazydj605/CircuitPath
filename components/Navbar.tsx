@@ -26,11 +26,11 @@ export default function Navbar() {
   const appLinks = [
     { label: 'Learn', href: '/learn', tourId: 'nav-learn' },
     { label: 'Paths', href: '/paths', tourId: undefined },
-    { label: 'Components', href: '/components', tourId: undefined },
+    { label: 'Simulator', href: '/simulator', tourId: undefined },
+    { label: 'Workshop', href: '/workshop', tourId: undefined },
     { label: 'Code', href: '/code', tourId: 'nav-code' },
     { label: 'Community', href: '/community', tourId: 'nav-community' },
-    { label: 'Certificates', href: '/certificates', tourId: undefined },
-    { label: 'Tutoring', href: '/tutoring', tourId: undefined },
+    { label: 'Components', href: '/components', tourId: undefined },
     { label: 'Pricing', href: '/pricing', tourId: undefined },
   ]
 

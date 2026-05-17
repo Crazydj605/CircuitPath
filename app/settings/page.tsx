@@ -118,6 +118,9 @@ export default function Settings() {
   const [cancelStep, setCancelStep] = useState<'none' | 'confirm' | 'offer' | 'cancelled' | 'discounted'>('none')
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancelError, setCancelError] = useState('')
+  const [publicSlug, setPublicSlug] = useState('')
+  const [publicProfileEnabled, setPublicProfileEnabled] = useState(false)
+  const [slugError, setSlugError] = useState('')
   const [preferences, setPreferences] = useState<Preferences>({
     board_type: 'Arduino Uno',
     beginner_tips_enabled: true,
@@ -133,10 +136,15 @@ export default function Settings() {
       setDisplayName(session.user.email?.split('@')[0] || '')
 
       const { data: profile } = await supabase
-        .from('profiles').select('name, subscription_tier, xp').eq('id', session.user.id).maybeSingle()
+        .from('profiles')
+        .select('name, subscription_tier, xp, public_slug, public_profile_enabled')
+        .eq('id', session.user.id)
+        .maybeSingle()
       if (profile?.name) setDisplayName(profile.name)
       setUserTier(profile?.subscription_tier || 'free')
       setUserXp(profile?.xp || 0)
+      setPublicSlug(profile?.public_slug || '')
+      setPublicProfileEnabled(!!profile?.public_profile_enabled)
 
       const { data: prefRow } = await supabase
         .from('learning_user_preferences').select('*').eq('user_id', session.user.id).maybeSingle()
@@ -164,10 +172,25 @@ export default function Settings() {
     setErrorMsg('')
     setSaved(false)
 
-    const { error: profileError } = await supabase.from('profiles').upsert(
-      { id: user.id, email: user.email, name: displayName, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    )
+    // Validate slug if changed and public profile is enabled
+    const cleanSlug = publicSlug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '')
+    if (publicProfileEnabled && (cleanSlug.length < 3 || cleanSlug.length > 30)) {
+      setSlugError('Profile URL must be 3–30 characters (letters, numbers, dashes).')
+      setSaving(false)
+      return
+    }
+    setSlugError('')
+
+    const profilePayload: Record<string, unknown> = {
+      id: user.id,
+      email: user.email,
+      name: displayName,
+      updated_at: new Date().toISOString(),
+      public_profile_enabled: userTier === 'max' ? publicProfileEnabled : false,
+    }
+    if (cleanSlug) profilePayload.public_slug = cleanSlug
+
+    const { error: profileError } = await supabase.from('profiles').upsert(profilePayload, { onConflict: 'id' })
 
     const { error: prefError } = await supabase.from('learning_user_preferences').upsert(
       { user_id: user.id, ...preferences, updated_at: new Date().toISOString() },
@@ -292,6 +315,62 @@ export default function Settings() {
                     className="w-full bg-white border border-slate-300 rounded-md px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-500 transition-colors"
                     placeholder="Your name"
                   />
+                </div>
+
+                {/* Public profile (Max only) */}
+                <div className="mt-5 pt-5 border-t border-slate-100">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        Public profile page
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded">
+                          MAX
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Share your progress at <span className="font-mono">circuitpath.net/u/&lt;your-slug&gt;</span>. Recruiters can verify your badges.
+                      </p>
+                    </div>
+                    <Toggle
+                      checked={publicProfileEnabled}
+                      onChange={(v) => {
+                        if (userTier !== 'max') return
+                        setPublicProfileEnabled(v)
+                      }}
+                    />
+                  </div>
+                  {userTier !== 'max' && (
+                    <p className="text-xs text-amber-600 flex items-center gap-1.5">
+                      <Lock className="w-3 h-3" /> Upgrade to Max to enable a public profile.
+                    </p>
+                  )}
+                  {publicProfileEnabled && (
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Profile URL slug</label>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-400 font-mono">circuitpath.net/u/</span>
+                        <input
+                          type="text"
+                          value={publicSlug}
+                          onChange={(e) => setPublicSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          maxLength={30}
+                          className="flex-1 bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-slate-500"
+                          placeholder="your-slug"
+                        />
+                      </div>
+                      {slugError && <p className="mt-1 text-xs text-red-600">{slugError}</p>}
+                      {publicSlug && !slugError && (
+                        <a
+                          href={`/u/${publicSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1.5 inline-flex items-center gap-1 text-xs text-violet-700 hover:underline"
+                        >
+                          Preview your profile →
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

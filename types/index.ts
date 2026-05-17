@@ -40,6 +40,7 @@ export interface LearningLesson {
   order_index: number
   required_tier: 'free' | 'pro' | 'max'
   is_published: boolean
+  max_only_until?: string | null
 }
 
 export interface LearningLessonStep {
@@ -72,6 +73,8 @@ export interface LearningUserStreak {
   current_streak_days: number
   longest_streak_days: number
   last_activity_date: string | null
+  freezes_available?: number
+  freezes_earned_total?: number
 }
 
 export interface UserProgress {

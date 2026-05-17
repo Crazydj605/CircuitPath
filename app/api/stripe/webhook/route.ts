@@ -32,6 +32,57 @@ export async function POST(req: NextRequest) {
 
   const db = supabaseAdmin()
 
+  // Award the max_member badge + notify Discord bot when a user becomes Max.
+  // Best-effort — never blocks the webhook response.
+  async function onTierChange(userId: string, newTier: string) {
+    if (newTier === 'max') {
+      const { data: badge } = await db.from('badges').select('id').eq('slug', 'max_member').maybeSingle()
+      if (badge?.id) {
+        await db.from('user_badges').upsert(
+          { user_id: userId, badge_id: badge.id, earned_at: new Date().toISOString() },
+          { onConflict: 'user_id,badge_id' },
+        )
+      }
+      // Optional Discord webhook — tell the bot to grant the Max role.
+      const discordHookUrl = process.env.DISCORD_MAX_ROLE_WEBHOOK
+      if (discordHookUrl) {
+        try {
+          const { data: profile } = await db
+            .from('profiles')
+            .select('email')
+            .eq('id', userId)
+            .maybeSingle()
+          await fetch(discordHookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, email: profile?.email, action: 'grant_max' }),
+          })
+        } catch (err) {
+          console.error('Discord webhook failed:', err)
+        }
+      }
+    } else if (newTier === 'free') {
+      // Downgrade: revoke the Max role (Discord only — keep the badge as historical).
+      const discordHookUrl = process.env.DISCORD_MAX_ROLE_WEBHOOK
+      if (discordHookUrl) {
+        try {
+          const { data: profile } = await db
+            .from('profiles')
+            .select('email')
+            .eq('id', userId)
+            .maybeSingle()
+          await fetch(discordHookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, email: profile?.email, action: 'revoke_max' }),
+          })
+        } catch (err) {
+          console.error('Discord webhook failed:', err)
+        }
+      }
+    }
+  }
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
     const type = session.metadata?.type
@@ -55,6 +106,7 @@ export async function POST(req: NextRequest) {
           subscription_status: 'active',
           stripe_subscription_id: session.subscription,
         }).eq('id', userId)
+        await onTierChange(userId, tier)
       }
     }
   }
@@ -69,19 +121,22 @@ export async function POST(req: NextRequest) {
     if (productId && productId === process.env.STRIPE_PRODUCT_MAX) tier = 'max'
     else if (productId && productId === process.env.STRIPE_PRODUCT_PRO) tier = 'pro'
 
-    await db.from('profiles').update({
-      subscription_tier: status === 'active' ? tier : 'free',
+    const finalTier = status === 'active' ? tier : 'free'
+    const { data: profile } = await db.from('profiles').update({
+      subscription_tier: finalTier,
       subscription_status: status,
       stripe_subscription_id: sub.id,
-    }).eq('stripe_customer_id', customerId)
+    }).eq('stripe_customer_id', customerId).select('id').maybeSingle()
+    if (profile?.id) await onTierChange(profile.id, finalTier)
   }
 
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object
-    await db.from('profiles').update({
+    const { data: profile } = await db.from('profiles').update({
       subscription_tier: 'free',
       subscription_status: 'canceled',
-    }).eq('stripe_customer_id', sub.customer)
+    }).eq('stripe_customer_id', sub.customer).select('id').maybeSingle()
+    if (profile?.id) await onTierChange(profile.id, 'free')
   }
 
   return NextResponse.json({ received: true })

@@ -187,6 +187,8 @@ export async function submitStepCheck(params: {
 
   let currentStreak = 1
   let longestStreak = 1
+  let freezesAvailable = streak?.freezes_available ?? 0
+  let freezesEarnedTotal = streak?.freezes_earned_total ?? 0
 
   if (streak?.last_activity_date) {
     if (streak.last_activity_date === params.localDate) {
@@ -198,12 +200,30 @@ export async function submitStepCheck(params: {
       const dayDiff = Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000)
 
       if (dayDiff === 1) {
+        // Normal consecutive-day increment.
+        currentStreak = streak.current_streak_days + 1
+      } else if (dayDiff > 1 && freezesAvailable >= dayDiff - 1) {
+        // Burn one freeze per missed day so the streak survives.
+        const burned = dayDiff - 1
+        freezesAvailable -= burned
         currentStreak = streak.current_streak_days + 1
       } else {
+        // Streak broke.
         currentStreak = 1
       }
       longestStreak = Math.max(streak.longest_streak_days, currentStreak)
     }
+  }
+
+  // Earn a freeze for every 7-day streak milestone (cap at 3 stored).
+  if (
+    currentStreak > 0 &&
+    currentStreak % 7 === 0 &&
+    streak?.current_streak_days !== currentStreak &&
+    freezesAvailable < 3
+  ) {
+    freezesAvailable += 1
+    freezesEarnedTotal += 1
   }
 
   const { error: streakError } = await supabase.from('learning_user_streaks').upsert(
@@ -212,6 +232,8 @@ export async function submitStepCheck(params: {
       current_streak_days: currentStreak,
       longest_streak_days: longestStreak,
       last_activity_date: params.localDate,
+      freezes_available: freezesAvailable,
+      freezes_earned_total: freezesEarnedTotal,
       updated_at: new Date().toISOString(),
     },
     {
