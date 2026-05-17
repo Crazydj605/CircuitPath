@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     referral_code: code,
     referral_count: count ?? 0,
-    bonus_weeks: Math.min(profile?.referral_bonus_weeks ?? 0, 2),
+    bonus_weeks: profile?.referral_bonus_weeks ?? 0,
   })
 }
 
@@ -81,12 +81,11 @@ export async function POST(req: NextRequest) {
 
   if (!referrer) return NextResponse.json({ error: 'Invalid referral code' }, { status: 404 })
   if (referrer.id === user.id) return NextResponse.json({ error: "Can't use your own code" }, { status: 400 })
-  if ((referrer.referral_bonus_weeks ?? 0) >= 2) return NextResponse.json({ error: 'Referrer has reached the 2-referral cap' }, { status: 400 })
 
-  // Mark the referee as referred + give them a bonus week
-  await supabase.from('profiles').update({ referred_by: referral_code.toUpperCase(), referral_bonus_weeks: 1 }).eq('id', user.id)
-  // Give the referrer a bonus week (capped at 2)
-  await supabase.from('profiles').update({ referral_bonus_weeks: (referrer.referral_bonus_weeks ?? 0) + 1 }).eq('id', referrer.id)
+  // Mark the referee as referred + give them a bonus month
+  await supabase.from('profiles').update({ referred_by: referral_code.toUpperCase(), referral_bonus_weeks: 4 }).eq('id', user.id)
+  // Give the referrer a bonus month (no cap)
+  await supabase.from('profiles').update({ referral_bonus_weeks: (referrer.referral_bonus_weeks ?? 0) + 4 }).eq('id', referrer.id)
 
-  return NextResponse.json({ success: true, message: 'Both you and the referrer earned 1 week of Pro!' })
+  return NextResponse.json({ success: true, message: 'Both you and the referrer earned 1 month of Pro free!' })
 }

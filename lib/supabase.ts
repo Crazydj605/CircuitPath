@@ -38,6 +38,16 @@ export async function signInWithGoogle() {
   return { data, error }
 }
 
+export async function signInWithGithub() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: 'https://circuitpath.net/auth/callback',
+    },
+  })
+  return { data, error }
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   return { error }

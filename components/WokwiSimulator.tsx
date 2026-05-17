@@ -86,25 +86,18 @@ export default function WokwiSimulator({
             <Zap className="w-3 h-3" /> Go Pro
           </Link>
         </div>
-      ) : !launched ? (
-        <div className="p-5 text-center space-y-3">
-          <p className="text-sm text-slate-600">{project.description}</p>
-          <button
-            onClick={() => setLaunched(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-md transition-colors"
-          >
-            <Play className="w-4 h-4" /> Launch Simulator
-          </button>
-          <p className="text-xs text-slate-400">Loads the pre-wired circuit for this lesson</p>
-        </div>
       ) : (
-        <div className="aspect-video">
-          <iframe
-            src={`https://wokwi.com/projects/${project.projectId}`}
-            className="w-full h-full border-0"
-            title="Wokwi Simulator"
-            allow="serial"
-          />
+        <div className="p-6 text-center space-y-4">
+          <p className="text-sm text-slate-600">{project.description}</p>
+          <a
+            href={`https://wokwi.com/projects/${project.projectId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+          >
+            <Play className="w-5 h-5" /> Launch Simulator
+          </a>
+          <p className="text-xs text-slate-400">Opens in a new tab with the pre-wired circuit for this lesson</p>
         </div>
       )}
     </div>

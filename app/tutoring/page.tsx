@@ -7,16 +7,16 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 const FEATURES = [
-  { icon: Video, title: 'Live screen share', desc: 'Work through problems together with live screen sharing and real-time debugging.' },
-  { icon: BookOpen, title: 'Custom curriculum', desc: 'Sessions are tailored to your level and goals — no generic lessons.' },
-  { icon: MessageSquare, title: 'Ask anything', desc: 'Get answers to questions that AI or documentation can\'t fully address.' },
-  { icon: Zap, title: 'Hands-on projects', desc: 'Build real circuits and get feedback on your wiring, code, and technique.' },
+  { icon: Video, title: 'Live debugging calls', desc: 'Hop on a video call and share your screen. I\'ll help you troubleshoot circuits, fix code errors, and get your project working.' },
+  { icon: BookOpen, title: 'Project planning', desc: 'Not sure how to approach a build? We\'ll plan out your circuit design, component selection, and code structure together.' },
+  { icon: MessageSquare, title: 'Idea sharing', desc: 'Bounce ideas around, get feedback on your concepts, and discover new approaches you might not have considered.' },
+  { icon: Zap, title: 'Code & circuit review', desc: 'Send me your schematics or code beforehand and I\'ll review it live, pointing out improvements and best practices.' },
 ]
 
 const STEPS = [
-  { num: '1', title: 'Pick a time', desc: 'Choose a slot that works for you using the booking calendar below.' },
-  { num: '2', title: 'Confirm + prep', desc: 'You\'ll get a confirmation email with a short intake form so I can prepare.' },
-  { num: '3', title: 'Join the session', desc: 'We meet on Google Meet or Discord with screen share and live collaboration.' },
+  { num: '1', title: 'Purchase a package', desc: 'Choose the package that fits your needs below. Payment is processed securely via Stripe.' },
+  { num: '2', title: 'We\'ll email to schedule', desc: 'After payment, you\'ll receive an email within 24 hours with available time slots that work for you.' },
+  { num: '3', title: 'Join the session', desc: 'We meet on Google Meet or Discord with screen share. Come with your questions and your project ready!' },
 ]
 
 const PACKAGES = [
@@ -48,29 +48,19 @@ export default function TutoringPage() {
               <Star className="w-3 h-3" /> 1-on-1 Tutoring
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-              Get unstuck — fast
+              Get help from a real person
             </h1>
             <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
-              Personal Arduino & electronics tutoring sessions. Skip the forums and get direct, personalized help from an expert.
+              Stuck on a circuit? Need help planning a project? Want to review your code? 
+              Book a live video session and we'll work through it together.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {CALENDLY_URL ? (
-                <a
-                  href={CALENDLY_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-semibold rounded-md transition-colors"
-                >
-                  <Calendar className="w-4 h-4" /> Book a session
-                </a>
-              ) : (
-                <a
-                  href="#booking"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-semibold rounded-md transition-colors"
-                >
-                  <Calendar className="w-4 h-4" /> Book a session
-                </a>
-              )}
+              <a
+                href="#pricing"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-semibold rounded-md transition-colors"
+              >
+                <Calendar className="w-4 h-4" /> View packages
+              </a>
               <Link
                 href="/learn"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-md transition-colors"
@@ -81,20 +71,20 @@ export default function TutoringPage() {
           </div>
         </section>
 
-        {/* Social proof strip */}
+        {/* Session details strip */}
         <section className="bg-slate-50 border-y border-slate-200 py-5 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-amber-500" />
-              <span><strong className="text-slate-900">200+</strong> sessions completed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-500" />
-              <span><strong className="text-slate-900">4.9 / 5</strong> avg. rating</span>
+              <Video className="w-4 h-4 text-amber-500" />
+              <span><strong className="text-slate-900">Live video</strong> with screen share</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-500" />
               <span><strong className="text-slate-900">60 min</strong> focused sessions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-amber-500" />
+              <span><strong className="text-slate-900">Satisfaction</strong> guaranteed</span>
             </div>
           </div>
         </section>
@@ -140,10 +130,10 @@ export default function TutoringPage() {
         </section>
 
         {/* Pricing */}
-        <section className="py-16 px-4">
+        <section id="pricing" className="py-16 px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Simple pricing</h2>
-            <p className="text-slate-500 text-sm text-center mb-10">No subscription. Pay once, book whenever.</p>
+            <p className="text-slate-500 text-sm text-center mb-10">Pay once. We'll email you within 24 hours to schedule your session(s).</p>
             <div className="grid sm:grid-cols-3 gap-5">
               {PACKAGES.map(pkg => (
                 <div key={pkg.name} className={`rounded-md border p-5 ${pkg.highlight ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-slate-200 bg-white'}`}>
@@ -163,55 +153,46 @@ export default function TutoringPage() {
                       </li>
                     ))}
                   </ul>
-                  {CALENDLY_URL ? (
-                    <a
-                      href={CALENDLY_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`block text-center py-2.5 text-sm font-semibold rounded-md transition-colors ${
-                        pkg.highlight ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
-                      }`}
-                    >
-                      Book now
-                    </a>
-                  ) : (
-                    <a
-                      href="#booking"
-                      className={`block text-center py-2.5 text-sm font-semibold rounded-md transition-colors ${
-                        pkg.highlight ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
-                      }`}
-                    >
-                      Book now
-                    </a>
-                  )}
+                  <button
+                    className={`w-full block text-center py-2.5 text-sm font-semibold rounded-md transition-colors ${
+                      pkg.highlight ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
+                  >
+                    Purchase & Schedule
+                  </button>
                 </div>
               ))}
+            </div>
+            
+            {/* Payment info */}
+            <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-md text-center">
+              <p className="text-sm text-slate-600">
+                <strong>How it works:</strong> Click "Purchase & Schedule" to pay via Stripe. 
+                After payment, you'll receive an email within 24 hours with available time slots. 
+                Sessions are held via Google Meet or Discord.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Booking calendar */}
-        <section id="booking" className="py-16 px-4 bg-slate-50 border-t border-slate-200">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Book your session</h2>
-            <p className="text-slate-500 text-sm mb-8">Pick a time that works for you.</p>
-            {CALENDLY_URL ? (
-              <div className="rounded-md overflow-hidden border border-slate-200 shadow-sm" style={{ height: 700 }}>
-                <iframe
-                  src={CALENDLY_URL}
-                  className="w-full h-full border-0"
-                  title="Book a tutoring session"
-                />
-              </div>
-            ) : (
-              <div className="bg-white border-2 border-dashed border-slate-300 rounded-md p-12">
-                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                <p className="text-sm text-slate-500 font-medium">Booking calendar coming soon</p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Add your Calendly URL via <code className="bg-slate-100 px-1 py-0.5 rounded text-xs">NEXT_PUBLIC_CALENDLY_URL</code> env var
-                </p>
-              </div>
-            )}
+        {/* FAQ */}
+        <section className="py-16 px-4 bg-slate-50 border-t border-slate-200">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">Common questions</h2>
+            <div className="space-y-4">
+              {[
+                { q: 'What can I get help with?', a: 'Anything Arduino/electronics related: debugging circuits, code review, project planning, component selection, or just bouncing ideas around.' },
+                { q: 'How do I schedule after paying?', a: 'After you purchase a package, you\'ll receive an email within 24 hours with a link to schedule your session(s) at times that work for you.' },
+                { q: 'What if I need to reschedule?', a: 'No problem! Just reply to the scheduling email and we\'ll find a new time that works. Reschedules are free with 24 hours notice.' },
+                { q: 'What platform do we use?', a: 'We use Google Meet or Discord — whichever you prefer. Both support screen sharing so I can see your circuit or code.' },
+                { q: 'Can I get a refund?', a: 'If you\'re not satisfied with your session, let me know and I\'ll make it right — either with a free redo or a full refund.' },
+              ].map((faq, i) => (
+                <div key={i} className="bg-white border border-slate-200 rounded-md p-4">
+                  <h3 className="font-semibold text-slate-900 text-sm mb-1">{faq.q}</h3>
+                  <p className="text-sm text-slate-500">{faq.a}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </div>

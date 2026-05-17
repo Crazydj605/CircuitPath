@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 80" width="440" height="80">
+  <defs>
+    <filter id="glow2" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="padGlow2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon box -->
+  <rect x="0" y="0" width="80" height="80" rx="16" fill="#0F172A"/>
+
+  <!-- PCB grid inside icon -->
+  <g stroke="#1E293B" stroke-width="0.8" opacity="1">
+    <line x1="0" y1="20" x2="80" y2="20"/>
+    <line x1="0" y1="40" x2="80" y2="40"/>
+    <line x1="0" y1="60" x2="80" y2="60"/>
+    <line x1="20" y1="0" x2="20" y2="80"/>
+    <line x1="40" y1="0" x2="40" y2="80"/>
+    <line x1="60" y1="0" x2="60" y2="80"/>
+  </g>
+
+  <!-- Connector stubs -->
+  <line x1="62" y1="20" x2="71" y2="20" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round" opacity="0.45"/>
+  <line x1="18" y1="60" x2="9"  y2="60" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Circuit path traces -->
+  <g filter="url(#glow2)">
+    <line x1="62" y1="20" x2="18" y2="20" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="18" y1="20" x2="18" y2="40" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="18" y1="40" x2="62" y2="40" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="62" y1="40" x2="62" y2="60" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+    <line x1="62" y1="60" x2="18" y2="60" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- Vias -->
+  <circle cx="18" cy="20" r="3.6" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+  <circle cx="18" cy="40" r="3.6" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+  <circle cx="62" cy="40" r="3.6" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+  <circle cx="62" cy="60" r="3.6" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+
+  <!-- End pads -->
+  <circle cx="62" cy="20" r="3.2" fill="url(#padGlow2)" filter="url(#glow2)"/>
+  <circle cx="18" cy="60" r="2.8" fill="#F59E0B"/>
+
+  <!-- Wordmark text -->
+  <!-- "Circuit" in bold slate -->
+  <text
+    x="100" y="50"
+    font-family="'Inter', 'Segoe UI', Arial, sans-serif"
+    font-size="32"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="#0F172A"
+  >Circuit</text>
+
+  <!-- "Path" in amber -->
+  <text
+    x="267" y="50"
+    font-family="'Inter', 'Segoe UI', Arial, sans-serif"
+    font-size="32"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="#F59E0B"
+  >Path</text>
+</svg>

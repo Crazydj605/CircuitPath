@@ -1,54 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Check, ShieldCheck, Flame, Clock, Zap, ArrowRight } from 'lucide-react'
+import { Check, ShieldCheck, Zap, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import AuthModal from './AuthModal'
-
-// ─── Countdown timer ─────────────────────────────────────────────
-function useCountdown() {
-  const [time, setTime] = useState({ h: 0, m: 0, s: 0 })
-
-  useEffect(() => {
-    const KEY = 'cp_sale_end'
-    let end = Number(localStorage.getItem(KEY) || 0)
-    if (!end || end < Date.now()) {
-      // 11 hours 47 minutes — specific enough to feel real
-      end = Date.now() + (11 * 3600 + 47 * 60 + 22) * 1000
-      localStorage.setItem(KEY, String(end))
-    }
-    const tick = () => {
-      let diff = Math.max(0, end - Date.now())
-      if (diff === 0) {
-        end = Date.now() + (11 * 3600 + 47 * 60 + 22) * 1000
-        localStorage.setItem(KEY, String(end))
-        diff = end - Date.now()
-      }
-      setTime({
-        h: Math.floor(diff / 3_600_000),
-        m: Math.floor((diff % 3_600_000) / 60_000),
-        s: Math.floor((diff % 60_000) / 1_000),
-      })
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  return time
-}
-
-function TimerBlock({ value, label }: { value: number; label: string }) {
-  const display = String(value).padStart(2, '0')
-  return (
-    <div className="flex flex-col items-center">
-      <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center">
-        <span className="text-white text-xl font-bold font-mono tabular-nums">{display}</span>
-      </div>
-      <span className="text-xs text-slate-400 mt-1 uppercase tracking-wide">{label}</span>
-    </div>
-  )
-}
 
 // ─── Plan data ───────────────────────────────────────────────────
 const plans = {
@@ -76,6 +31,7 @@ const plans = {
     cta: 'Claim 40% Off — Upgrade to Pro',
     features: [
       'Full lesson library (all 6+ lessons)',
+      'Wokwi circuit simulator (visual learning)',
       'Step checkpoints + troubleshooting guides',
       'Progress tracking and streak tools',
       'Community challenges and leaderboard',
@@ -93,10 +49,14 @@ const plans = {
     cta: 'Upgrade to Max',
     features: [
       'Everything in Pro',
+      'Wokwi circuit simulator (visual learning)',
+      'Free unlimited certificates',
+      'AI Tutor access (chat with AI expert)',
       'Advanced project tracks',
       'Deep-dive troubleshooting packs',
       'Early access to new modules',
       'Direct Q&A sessions',
+      'Exclusive Max-only badges',
     ],
   },
 }
@@ -107,7 +67,6 @@ export default function PricingSection() {
   const [user, setUser] = useState<any>(null)
   const [userToken, setUserToken] = useState<string | null>(null)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
-  const countdown = useCountdown()
 
   useEffect(() => {
     const init = async () => {
@@ -142,34 +101,6 @@ export default function PricingSection() {
     <>
       <section id="pricing" className="py-24 px-4 bg-white border-y border-slate-200">
         <div className="max-w-6xl mx-auto">
-
-          {/* ── Sale banner ── */}
-          <div className="mb-10 rounded-md bg-slate-900 px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-white/10 rounded flex items-center justify-center shrink-0">
-                <Flame className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm md:text-base">
-                  Spring Sale — 40% Off Pro
-                </p>
-                <p className="text-slate-400 text-xs mt-0.5">
-                  Limited spots at this price. Locks in your rate forever.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 text-xs mr-1 hidden sm:inline">Ends in</span>
-              <div className="flex items-end gap-2">
-                <TimerBlock value={countdown.h} label="hrs" />
-                <span className="text-white text-xl font-bold mb-5 self-start mt-2">:</span>
-                <TimerBlock value={countdown.m} label="min" />
-                <span className="text-white text-xl font-bold mb-5 self-start mt-2">:</span>
-                <TimerBlock value={countdown.s} label="sec" />
-              </div>
-            </div>
-          </div>
 
           {/* ── Section header ── */}
           <div className="text-center mb-10">

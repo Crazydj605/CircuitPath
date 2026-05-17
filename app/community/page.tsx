@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Users, MessageSquare, Trophy, TrendingUp, Heart, Share2, MessageCircle, Target, Flame, ArrowRight, Shield } from 'lucide-react'
+import { Users, MessageSquare, Trophy, TrendingUp, Sparkles, Target, Flame, ArrowRight, Shield, Rocket } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import WeeklyChallenge from '@/components/WeeklyChallenge'
@@ -18,64 +18,6 @@ const AVATAR_COLORS = [
   'bg-cyan-100 text-cyan-700',
 ]
 
-const TOP_LEARNERS = [
-  { rank: 1, name: 'Alex Chen', xp: 12500, streak: 45, avatar: 'A' },
-  { rank: 2, name: 'Sarah Miller', xp: 11200, streak: 32, avatar: 'S' },
-  { rank: 3, name: 'James Wilson', xp: 10800, streak: 28, avatar: 'J' },
-  { rank: 4, name: 'Maria Garcia', xp: 9800, streak: 21, avatar: 'M' },
-  { rank: 5, name: 'David Park', xp: 9100, streak: 18, avatar: 'D' },
-]
-
-const RANK_MEDALS = ['🥇', '🥈', '🥉']
-
-const RECENT_POSTS = [
-  {
-    id: 1,
-    author: 'David Park',
-    avatar: 'D',
-    colorIdx: 0,
-    title: 'Just completed my first working LED circuit!',
-    content: 'Finally got the resistor values right. The multimeter was the key tool I was missing — if you\'re struggling, grab one.',
-    likes: 24,
-    comments: 8,
-    time: '2 hours ago',
-    tag: 'Win',
-    tagColor: 'bg-green-100 text-green-700',
-  },
-  {
-    id: 2,
-    author: 'Emma Thompson',
-    avatar: 'E',
-    colorIdx: 4,
-    title: 'Help with servo motor jitter?',
-    content: 'My servo works but has slight jitter when holding position. Using Arduino Uno with the standard servo library. Any ideas?',
-    likes: 12,
-    comments: 15,
-    time: '5 hours ago',
-    tag: 'Question',
-    tagColor: 'bg-blue-100 text-blue-700',
-  },
-  {
-    id: 3,
-    author: 'Michael Liu',
-    avatar: 'M',
-    colorIdx: 2,
-    title: 'Week 4 project: Digital Dice — sharing my schematic',
-    content: "Here's the circuit diagram I used for the Digital Dice project. The 555 timer configuration took some tweaking but it's clean now.",
-    likes: 56,
-    comments: 23,
-    time: '1 day ago',
-    tag: 'Project',
-    tagColor: 'bg-violet-100 text-violet-700',
-  },
-]
-
-const CHALLENGES = [
-  { name: '7-Day Streak Challenge', participants: 1247, daysLeft: 3, joined: true, color: 'bg-amber-50 border-amber-200' },
-  { name: 'Build a Night Light', participants: 892, daysLeft: 12, joined: false, color: 'bg-slate-50 border-slate-200' },
-  { name: 'Component ID Quiz', participants: 2156, daysLeft: 5, joined: false, color: 'bg-slate-50 border-slate-200' },
-]
-
 export default function Community() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -83,8 +25,6 @@ export default function Community() {
   const [userStreak, setUserStreak] = useState(0)
   const [userBadgeCount, setUserBadgeCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [postText, setPostText] = useState('')
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set())
   const [activeTab, setActiveTab] = useState<'feed' | 'showcase'>('feed')
 
   useEffect(() => {
@@ -129,12 +69,12 @@ export default function Community() {
 
         <div className="max-w-6xl mx-auto px-4 mt-6">
 
-          {/* Stats bar */}
+          {/* Stats bar - showing real user stats only */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             {[
-              { icon: Users, label: 'Learners', value: '50K+', color: 'text-violet-600', bg: 'bg-violet-50 border-violet-200' },
-              { icon: MessageSquare, label: 'Posts today', value: '2.3K', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
-              { icon: Trophy, label: 'Challenges', value: '156', color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' },
+              { icon: Trophy, label: 'Your XP', value: userXp.toLocaleString(), color: 'text-violet-600', bg: 'bg-violet-50 border-violet-200' },
+              { icon: Flame, label: 'Your Streak', value: `${userStreak} days`, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' },
+              { icon: Shield, label: 'Your Badges', value: userBadgeCount.toString(), color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
             ].map(stat => (
               <div key={stat.label} className={`flex items-center gap-3 p-4 bg-white border rounded-md ${stat.bg}`}>
                 <div className={`w-9 h-9 rounded flex items-center justify-center ${stat.bg}`}>
@@ -176,84 +116,49 @@ export default function Community() {
               {/* Weekly Challenge */}
               <WeeklyChallenge />
 
-              {/* Post composer */}
-              <div className="bg-white border border-slate-200 rounded-md p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${AVATAR_COLORS[0]}`}>
-                    {userInitial}
-                  </div>
-                  <input
-                    type="text"
-                    value={postText}
-                    onChange={e => setPostText(e.target.value)}
-                    placeholder="Share your progress or ask a question..."
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-md px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-400 transition-colors"
-                  />
+              {/* Community Launching Soon */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-md p-8 text-center"
+              >
+                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Rocket className="w-8 h-8 text-amber-400" />
                 </div>
-                <div className="flex justify-end">
-                  <button
-                    disabled={!postText.trim()}
-                    className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Post
-                  </button>
+                <h3 className="text-xl font-bold text-white mb-2">Join Us on Discord</h3>
+                <p className="text-slate-400 mb-4 max-w-md mx-auto">
+                  Our Discord is live — share your builds, ask questions, and join the weekly project challenge with fellow makers.
+                </p>
+                <a
+                  href="https://discord.gg/circuitpath"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-md transition-colors"
+                >
+                  <Users className="w-4 h-4" /> Join the Discord
+                </a>
+              </motion.div>
+
+              {/* Preview: What to expect */}
+              <div className="bg-white border border-slate-200 rounded-md p-5">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  What's Coming
+                </h3>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {[
+                    { icon: MessageSquare, title: 'Project Sharing', desc: 'Post your builds and get feedback' },
+                    { icon: Trophy, title: 'Leaderboards', desc: 'Compete with other learners' },
+                    { icon: Target, title: 'Challenges', desc: 'Weekly building challenges' },
+                  ].map((item, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-md">
+                      <item.icon className="w-5 h-5 text-slate-600 mb-2" />
+                      <p className="text-sm font-medium text-slate-900">{item.title}</p>
+                      <p className="text-xs text-slate-500">{item.desc}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              {/* Posts */}
-              {RECENT_POSTS.map((post, idx) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.08 }}
-                  className="bg-white border border-slate-200 rounded-md overflow-hidden hover:border-slate-300 transition-colors"
-                >
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${AVATAR_COLORS[post.colorIdx]}`}>
-                          {post.avatar}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{post.author}</p>
-                          <p className="text-xs text-slate-400">{post.time}</p>
-                        </div>
-                      </div>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${post.tagColor}`}>
-                        {post.tag}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-semibold text-slate-900 mb-1.5">{post.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed mb-4">{post.content}</p>
-
-                    <div className="flex items-center gap-5 pt-3 border-t border-slate-100">
-                      <button
-                        onClick={() => setLikedPosts(prev => {
-                          const next = new Set(prev)
-                          next.has(post.id) ? next.delete(post.id) : next.add(post.id)
-                          return next
-                        })}
-                        className={`flex items-center gap-1.5 text-sm transition-colors ${
-                          likedPosts.has(post.id) ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'
-                        }`}
-                      >
-                        <Heart className={`w-4 h-4 ${likedPosts.has(post.id) ? 'fill-rose-500' : ''}`} />
-                        {post.likes + (likedPosts.has(post.id) ? 1 : 0)}
-                      </button>
-                      <button className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors">
-                        <MessageCircle className="w-4 h-4" />
-                        {post.comments}
-                      </button>
-                      <button className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors ml-auto">
-                        <Share2 className="w-4 h-4" />
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
 
             </>}
             </div>
@@ -261,106 +166,63 @@ export default function Community() {
             {/* Sidebar */}
             <div className="space-y-5">
 
-              {/* Leaderboard */}
+              {/* Your Stats */}
               <div className="bg-white border border-slate-200 rounded-md p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="w-5 h-5 text-amber-500" />
-                  <h3 className="font-semibold text-slate-900">Leaderboard</h3>
-                </div>
-                <div className="space-y-2">
-                  {TOP_LEARNERS.map((entry, i) => (
-                    <div
-                      key={entry.rank}
-                      className="flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50"
-                    >
-                      <span className="w-6 text-center text-sm">
-                        {i < 3 ? RANK_MEDALS[i] : <span className="text-slate-400 font-medium">{entry.rank}</span>}
-                      </span>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
-                        {entry.avatar}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate font-medium text-slate-700">{entry.name}</p>
-                        <p className="text-xs text-slate-400">{entry.xp.toLocaleString()} XP</p>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-amber-500">
-                        <Flame className="w-3 h-3" />
-                        {entry.streak}
-                      </div>
-                    </div>
-                  ))}
-                  {/* Real user row */}
-                  <div className="flex items-center gap-3 p-2.5 rounded-md bg-slate-100 border border-slate-200 mt-1">
-                    <span className="w-6 text-center text-xs text-slate-400 font-medium">—</span>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-slate-200 text-slate-700">
-                      {user?.email?.[0]?.toUpperCase() || 'Y'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate font-semibold text-slate-900">
-                        {user?.email?.split('@')[0] || 'You'} <span className="text-xs font-normal text-slate-400">(you)</span>
-                      </p>
-                      <p className="text-xs text-slate-400">{userXp.toLocaleString()} XP</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-xs text-amber-500">
-                        <Flame className="w-3 h-3" />
-                        {userStreak}
-                      </div>
-                      {userBadgeCount > 0 && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400">
-                          <Shield className="w-3 h-3" />
-                          {userBadgeCount}
-                        </div>
-                      )}
-                    </div>
+                <h3 className="font-semibold text-slate-900 mb-4">Your Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 flex items-center gap-1.5">
+                      <Trophy className="w-4 h-4 text-violet-500" /> XP
+                    </span>
+                    <span className="text-sm font-semibold text-slate-900">{userXp.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 flex items-center gap-1.5">
+                      <Flame className="w-4 h-4 text-amber-500" /> Streak
+                    </span>
+                    <span className="text-sm font-semibold text-slate-900">{userStreak} days</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 flex items-center gap-1.5">
+                      <Shield className="w-4 h-4 text-blue-500" /> Badges
+                    </span>
+                    <span className="text-sm font-semibold text-slate-900">{userBadgeCount}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Challenges */}
-              <div className="bg-white border border-slate-200 rounded-md p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Target className="w-5 h-5 text-slate-600" />
-                  <h3 className="font-semibold text-slate-900">Active Challenges</h3>
+              {/* Community Preview */}
+              <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 rounded-md p-5 text-white">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-5 h-5 text-indigo-300" />
+                  <h3 className="font-semibold">Discord Community</h3>
                 </div>
-                <div className="space-y-3">
-                  {CHALLENGES.map(c => (
-                    <div key={c.name} className={`p-3 border rounded-md ${c.color}`}>
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <p className="text-sm font-medium text-slate-900 leading-snug">{c.name}</p>
-                        {c.joined && (
-                          <span className="text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded shrink-0">Joined</span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span>{c.participants.toLocaleString()} builders</span>
-                        <span>{c.daysLeft}d left</span>
-                      </div>
-                      {!c.joined && (
-                        <button className="mt-2.5 w-full flex items-center justify-center gap-1 py-1.5 bg-slate-900 text-white text-xs font-medium rounded hover:bg-slate-800 transition-colors">
-                          Join <ArrowRight className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm text-indigo-200 mb-4">
+                  Post your builds, join the weekly project challenge, and connect with other makers.
+                </p>
+                <a
+                  href="https://discord.gg/circuitpath"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-semibold bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md transition-colors"
+                >
+                  <Target className="w-3 h-3" /> Join Now →
+                </a>
               </div>
 
-              {/* Your activity */}
+              {/* Quick Links */}
               <div className="bg-white border border-slate-200 rounded-md p-5">
-                <h3 className="font-semibold text-slate-900 mb-4">Your Activity</h3>
+                <h3 className="font-semibold text-slate-900 mb-3">Quick Links</h3>
                 <div className="space-y-2">
-                  {[
-                    { label: 'Posts', value: '3' },
-                    { label: 'Comments', value: '12' },
-                    { label: 'Likes received', value: '47' },
-                    { label: 'Challenges joined', value: '1' },
-                  ].map(item => (
-                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
-                      <span className="text-sm text-slate-500">{item.label}</span>
-                      <span className="text-sm font-semibold text-slate-900">{item.value}</span>
-                    </div>
-                  ))}
+                  <a href="/dashboard" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                    <ArrowRight className="w-4 h-4" /> Go to Dashboard
+                  </a>
+                  <a href="/learn" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                    <ArrowRight className="w-4 h-4" /> Continue Learning
+                  </a>
+                  <a href="/tutoring" className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                    <ArrowRight className="w-4 h-4" /> Book Tutoring
+                  </a>
                 </div>
               </div>
             </div>

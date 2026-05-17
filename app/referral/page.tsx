@@ -26,7 +26,7 @@ export default function ReferralPage() {
               <Gift className="w-7 h-7 text-violet-600" />
               <h1 className="text-2xl font-bold text-slate-900">Refer Friends</h1>
             </div>
-            <p className="text-slate-500 text-sm ml-10">Share CircuitPath and both of you earn a free week of Pro.</p>
+            <p className="text-slate-500 text-sm ml-10">Share CircuitPath and both of you earn a free month of Pro.</p>
           </div>
         </div>
 
@@ -39,8 +39,8 @@ export default function ReferralPage() {
             <div className="space-y-3">
               {[
                 { num: '1', text: 'Copy your referral link and share it with friends.' },
-                { num: '2', text: 'When a friend signs up and enters your code, you both get 1 week of Pro access.' },
-                { num: '3', text: 'You can earn up to 2 weeks free (2 referrals max per account).' },
+                { num: '2', text: 'When a friend signs up and enters your code, you both get 1 full month of Pro access free.' },
+                { num: '3', text: 'There is no cap — every successful referral earns you another free month.' },
               ].map(s => (
                 <div key={s.num} className="flex gap-3 items-start">
                   <span className="w-6 h-6 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">{s.num}</span>

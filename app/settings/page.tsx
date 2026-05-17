@@ -115,6 +115,9 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [cancelStep, setCancelStep] = useState<'none' | 'confirm' | 'offer' | 'cancelled' | 'discounted'>('none')
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelError, setCancelError] = useState('')
   const [preferences, setPreferences] = useState<Preferences>({
     board_type: 'Arduino Uno',
     beginner_tips_enabled: true,
@@ -199,6 +202,44 @@ export default function Settings() {
     // Sign out locally and go home
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true)
+    setCancelError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setCancelError('Not logged in'); setCancelLoading(false); return }
+    const res = await fetch('/api/stripe/cancel-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userToken: session.access_token }),
+    })
+    if (res.ok) {
+      setCancelStep('cancelled')
+    } else {
+      const err = await res.json()
+      setCancelError(err.error || 'Something went wrong. Please try again.')
+    }
+    setCancelLoading(false)
+  }
+
+  const handleApplyDiscount = async () => {
+    setCancelLoading(true)
+    setCancelError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setCancelError('Not logged in'); setCancelLoading(false); return }
+    const res = await fetch('/api/stripe/apply-discount', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userToken: session.access_token }),
+    })
+    if (res.ok) {
+      setCancelStep('discounted')
+    } else {
+      const err = await res.json()
+      setCancelError(err.error || 'Something went wrong. Please try again.')
+    }
+    setCancelLoading(false)
   }
 
   if (loading) {
@@ -390,6 +431,90 @@ export default function Settings() {
                 )}
                 {userTier === 'max' && (
                   <p className="text-sm text-slate-500">You have the highest plan. Thank you for supporting CircuitPath!</p>
+                )}
+
+                {/* Cancel plan flow */}
+                {(userTier === 'pro' || userTier === 'premium' || userTier === 'max') && cancelStep === 'none' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <button
+                      onClick={() => { setCancelStep('confirm'); setCancelError('') }}
+                      className="text-sm text-slate-400 hover:text-red-600 transition-colors underline underline-offset-2"
+                    >
+                      Cancel my plan
+                    </button>
+                  </div>
+                )}
+
+                {cancelStep === 'confirm' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 p-4 bg-slate-50 rounded-md space-y-3">
+                    <p className="text-sm font-semibold text-slate-900">Are you sure you want to cancel?</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      You will keep full access until the end of your current billing period. After that, your plan downgrades to Free.
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCancelStep('offer')}
+                        className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
+                      >
+                        Yes, cancel my plan
+                      </button>
+                      <button
+                        onClick={() => setCancelStep('none')}
+                        className="flex-1 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                      >
+                        Go back
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {cancelStep === 'offer' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-md space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🎁</span>
+                        <p className="text-sm font-bold text-slate-900">Wait — stay and save 30%</p>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        As a thank-you for being a CircuitPath member, we will apply a <span className="font-semibold">30% discount to your next month</span> — no commitment required. You can still cancel after that.
+                      </p>
+                      {cancelError && <p className="text-xs text-red-600">{cancelError}</p>}
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={handleApplyDiscount}
+                          disabled={cancelLoading}
+                          className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-md transition-colors disabled:opacity-50"
+                        >
+                          {cancelLoading ? 'Applying…' : 'Apply 30% Discount — Keep Access'}
+                        </button>
+                        <button
+                          onClick={handleCancelSubscription}
+                          disabled={cancelLoading}
+                          className="w-full py-2 text-xs text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
+                        >
+                          {cancelLoading ? '…' : 'No thanks, cancel my plan anyway'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {cancelStep === 'discounted' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 p-4 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm font-semibold text-green-800 mb-1">🎉 30% discount applied!</p>
+                    <p className="text-xs text-green-700 leading-relaxed">
+                      Your next billing will be 30% off. Your plan stays active — thank you for sticking with CircuitPath!
+                    </p>
+                  </div>
+                )}
+
+                {cancelStep === 'cancelled' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 p-4 bg-slate-50 border border-slate-200 rounded-md">
+                    <p className="text-sm font-semibold text-slate-900 mb-1">Plan cancellation scheduled</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Your plan will remain active until the end of your billing period. After that it will downgrade to Free. Changed your mind? Contact us anytime.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

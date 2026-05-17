@@ -54,7 +54,7 @@ export default function ReferralWidget() {
     if (res.ok) {
       setClaimStatus('success')
       setClaimMsg(d.message)
-      setBonusWeeks(prev => Math.min(prev + 1, 2))
+      setBonusWeeks(prev => prev + 4)
     } else {
       setClaimStatus('error')
       setClaimMsg(d.error || 'Something went wrong')
@@ -69,7 +69,7 @@ export default function ReferralWidget() {
         </div>
         <div>
           <h3 className="font-semibold text-slate-900 text-sm">Refer a Friend</h3>
-          <p className="text-xs text-slate-400">Both of you get 1 week of Pro free</p>
+          <p className="text-xs text-slate-400">Both of you get 1 month of Pro free</p>
         </div>
       </div>
 
@@ -81,14 +81,14 @@ export default function ReferralWidget() {
               <Users className="w-3.5 h-3.5 text-slate-400" />
               <span className="text-xs text-slate-500">Referrals</span>
             </div>
-            <p className="text-xl font-bold text-slate-900">{referralCount}<span className="text-sm font-normal text-slate-400"> / 2</span></p>
+            <p className="text-xl font-bold text-slate-900">{referralCount}</p>
           </div>
           <div className="bg-violet-50 rounded-md p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <Gift className="w-3.5 h-3.5 text-violet-400" />
-              <span className="text-xs text-slate-500">Bonus weeks</span>
+              <span className="text-xs text-slate-500">Bonus months</span>
             </div>
-            <p className="text-xl font-bold text-violet-700">{bonusWeeks}<span className="text-sm font-normal text-slate-400"> earned</span></p>
+            <p className="text-xl font-bold text-violet-700">{Math.round(bonusWeeks / 4)}<span className="text-sm font-normal text-slate-400"> earned</span></p>
           </div>
         </div>
 

@@ -31,6 +31,7 @@ export default function Navbar() {
     { label: 'Community', href: '/community', tourId: 'nav-community' },
     { label: 'Certificates', href: '/certificates', tourId: undefined },
     { label: 'Tutoring', href: '/tutoring', tourId: undefined },
+    { label: 'Pricing', href: '/pricing', tourId: undefined },
   ]
 
   useEffect(() => {
@@ -75,7 +76,7 @@ export default function Navbar() {
             </a>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-5">
+            <div className="hidden md:flex items-center gap-2.5">
               {navLinks.map((link) => {
                 const isActive = link.href.startsWith('/#')
                   ? false
@@ -85,7 +86,7 @@ export default function Navbar() {
                     key={link.label}
                     href={link.href}
                     data-tour={link.tourId}
-                    className={`text-sm transition-colors ${isActive ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={`text-xs transition-colors px-1 ${isActive ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-900'}`}
                   >
                     {link.label}
                   </a>
@@ -100,7 +101,7 @@ export default function Navbar() {
                   {xp !== null && (() => {
                     const rank = getRank(xp)
                     return (
-                      <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded text-xs font-semibold text-amber-700">
+                      <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded text-xs font-semibold text-amber-700">
                         <Zap className="w-3 h-3 text-amber-500" />
                         <span className={rank.color}>{rank.name}</span>
                         <span className="text-amber-500">·</span>
@@ -108,8 +109,8 @@ export default function Navbar() {
                       </div>
                     )
                   })()}
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-sm text-slate-700">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">
+                    <User className="w-3 h-3 text-slate-400" />
                     {user.email?.split('@')[0]}
                   </div>
                   <Link

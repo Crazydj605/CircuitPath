@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="padGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" rx="36" fill="#0F172A"/>
+
+  <!-- Subtle PCB grid -->
+  <g stroke="#1E293B" stroke-width="1" opacity="1">
+    <line x1="0" y1="50" x2="200" y2="50"/>
+    <line x1="0" y1="100" x2="200" y2="100"/>
+    <line x1="0" y1="150" x2="200" y2="150"/>
+    <line x1="50" y1="0" x2="50" y2="200"/>
+    <line x1="100" y1="0" x2="100" y2="200"/>
+    <line x1="150" y1="0" x2="150" y2="200"/>
+  </g>
+
+  <!-- Connector stubs at endpoints (faint leads) -->
+  <line x1="155" y1="50" x2="178" y2="50" stroke="#F59E0B" stroke-width="6" stroke-linecap="round" opacity="0.45"/>
+  <line x1="45" y1="150" x2="22" y2="150" stroke="#F59E0B" stroke-width="6" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Main circuit path traces -->
+  <g filter="url(#glow)">
+    <!-- Top horizontal: right → left -->
+    <line x1="155" y1="50" x2="45" y2="50" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+    <!-- Left drop: top → middle -->
+    <line x1="45" y1="50" x2="45" y2="100" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+    <!-- Middle horizontal: left → right -->
+    <line x1="45" y1="100" x2="155" y2="100" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+    <!-- Right drop: middle → bottom -->
+    <line x1="155" y1="100" x2="155" y2="150" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+    <!-- Bottom horizontal: right → left -->
+    <line x1="155" y1="150" x2="45" y2="150" stroke="#F59E0B" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- Via rings at 90° bends -->
+  <circle cx="45"  cy="50"  r="9" fill="#0F172A" stroke="#F59E0B" stroke-width="3.5"/>
+  <circle cx="45"  cy="100" r="9" fill="#0F172A" stroke="#F59E0B" stroke-width="3.5"/>
+  <circle cx="155" cy="100" r="9" fill="#0F172A" stroke="#F59E0B" stroke-width="3.5"/>
+  <circle cx="155" cy="150" r="9" fill="#0F172A" stroke="#F59E0B" stroke-width="3.5"/>
+
+  <!-- Start pad (top-right) -->
+  <circle cx="155" cy="50" r="8" fill="url(#padGlow)" filter="url(#glow)"/>
+
+  <!-- End pad (bottom-left) — slightly smaller, suggesting destination -->
+  <circle cx="45"  cy="150" r="7" fill="#F59E0B"/>
+</svg>

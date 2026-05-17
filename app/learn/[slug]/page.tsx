@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap } from 'lucide-react'
+import { CheckCircle2, Copy, Wrench, ArrowLeft, ArrowRight, BookOpen, Check, Code2, Lock, Zap, Play, LogOut } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
 import ComponentKitLink from '@/components/ComponentKitLink'
-import WokwiSimulator from '@/components/WokwiSimulator'
 import Navbar from '@/components/Navbar'
 import { RenderMd } from '@/components/RenderMd'
 import AiTutor from '@/components/AiTutor'
@@ -14,6 +13,7 @@ import AuthModal from '@/components/AuthModal'
 import { supabase } from '@/lib/supabase'
 import confetti from 'canvas-confetti'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
+import { LESSON_QUIZZES, LESSON_SUMMARIES } from '@/lib/quizzes'
 import type { LearningLesson, LearningLessonStep, LearningUserLessonProgress } from '@/types'
 
 function difficultyStyle(d: string) {
@@ -39,23 +39,28 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
   const [isGuest, setIsGuest] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
 
+  // Quiz states
+  const [quizPhase, setQuizPhase] = useState<'lesson' | 'quiz' | 'quiz-fail' | 'summary'>('lesson')
+  const [currentQ, setCurrentQ] = useState(0)
+  const [quizAnswers, setQuizAnswers] = useState<(number | null)[]>([])
+  const [quizScore, setQuizScore] = useState(0)
+
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (isComplete || loading) return
+      if (isComplete || loading || quizPhase !== 'lesson') return
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       if (e.key === 'ArrowRight') goNext()
       if (e.key === 'ArrowLeft') goBack()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [isComplete, loading, stepIndex, steps, lesson, progress])
+  }, [isComplete, loading, stepIndex, steps, lesson, progress, quizPhase])
 
   useEffect(() => {
     const bootstrap = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        // Guest: load lesson publicly, show step 1 only
         setIsGuest(true)
         const data = await getLessonBySlug(params.slug)
         setLesson(data.lesson)
@@ -103,32 +108,74 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     }
   }
 
+  const markLessonComplete = async () => {
+    if (!lesson) return
+    await saveLessonProgress({
+      lessonId: lesson.id,
+      currentStepIndex: steps.length - 1,
+      completedSteps: Array.from(completedSteps),
+      isCompleted: true,
+    })
+    setProgress(prev => ({
+      user_id: prev?.user_id || '',
+      lesson_id: lesson.id,
+      status: 'completed',
+      current_step_index: steps.length - 1,
+      completed_steps: Array.from(completedSteps),
+      started_at: prev?.started_at || new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      last_seen_at: new Date().toISOString(),
+    }))
+    setIsComplete(true)
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#1e293b', '#f59e0b', '#10b981', '#3b82f6'] })
+  }
+
+  const saveAndExit = async () => {
+    if (!lesson) return
+    await saveLessonProgress({
+      lessonId: lesson.id,
+      currentStepIndex: stepIndex,
+      completedSteps: Array.from(completedSteps),
+      isCompleted: progress?.status === 'completed',
+    })
+    router.push('/learn')
+  }
+
   const goNext = async () => {
     if (!lesson || !activeStep) return
     const newCompleted = new Set(completedSteps)
     newCompleted.add(activeStep.step_index)
     const nextIndex = Math.min(stepIndex + 1, steps.length - 1)
-    const done = nextIndex === steps.length - 1 && newCompleted.has(steps[steps.length - 1].step_index)
+    const isLastStep = stepIndex === steps.length - 1
+
     await saveLessonProgress({
       lessonId: lesson.id,
       currentStepIndex: nextIndex,
       completedSteps: Array.from(newCompleted),
-      isCompleted: done,
+      isCompleted: false,
     })
     setProgress(prev => ({
       user_id: prev?.user_id || '',
       lesson_id: lesson.id,
-      status: done ? 'completed' : 'in_progress',
+      status: 'in_progress',
       current_step_index: nextIndex,
       completed_steps: Array.from(newCompleted),
       started_at: prev?.started_at || new Date().toISOString(),
-      completed_at: done ? new Date().toISOString() : null,
+      completed_at: null,
       last_seen_at: new Date().toISOString(),
     }))
     setCheckpointResult('idle')
-    if (stepIndex === steps.length - 1) {
-      setIsComplete(true)
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#1e293b', '#f59e0b', '#10b981', '#3b82f6'] })
+
+    if (isLastStep) {
+      const quiz = LESSON_QUIZZES[params.slug] || []
+      if (quiz.length > 0) {
+        setQuizPhase('quiz')
+        setCurrentQ(0)
+        setQuizAnswers(new Array(quiz.length).fill(null))
+        setQuizScore(0)
+      } else {
+        await markLessonComplete()
+      }
     } else {
       setStepIndex(nextIndex)
     }
@@ -145,6 +192,38 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
       completedSteps: Array.from(completedSteps),
       isCompleted: progress?.status === 'completed',
     })
+  }
+
+  const handleSelectAnswer = (optionIndex: number) => {
+    if (quizAnswers[currentQ] !== null) return
+    const newAnswers = [...quizAnswers]
+    newAnswers[currentQ] = optionIndex
+    setQuizAnswers(newAnswers)
+  }
+
+  const handleQuizNext = () => {
+    const quiz = LESSON_QUIZZES[params.slug] || []
+    if (currentQ < quiz.length - 1) {
+      setCurrentQ(prev => prev + 1)
+    } else {
+      const score = quizAnswers.reduce((acc, answer, i) => {
+        return acc + (answer === quiz[i].correctIndex ? 1 : 0)
+      }, 0)
+      setQuizScore(score)
+      if (score >= 3) {
+        markLessonComplete()
+      } else {
+        setQuizPhase('quiz-fail')
+      }
+    }
+  }
+
+  const resetQuiz = () => {
+    const quiz = LESSON_QUIZZES[params.slug] || []
+    setQuizPhase('quiz')
+    setCurrentQ(0)
+    setQuizAnswers(new Array(quiz.length).fill(null))
+    setQuizScore(0)
   }
 
   if (loading) {
@@ -238,7 +317,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     )
   }
 
-  // Completion screen
+  // Lesson complete screen
   if (isComplete) {
     return (
       <main className="min-h-screen bg-slate-50">
@@ -264,9 +343,9 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                 </div>
               </div>
               <p className="text-slate-600 mb-6 leading-relaxed text-sm">
-                Great work! Every completed lesson builds your streak and XP. Keep the momentum going!
+                Great work! You passed the quiz and finished the lesson. Every completed lesson builds your streak and XP. Keep the momentum going!
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
                 <Link
                   href="/learn"
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors"
@@ -274,7 +353,15 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                   <BookOpen className="w-4 h-4" /> Next lesson
                 </Link>
                 <button
-                  onClick={() => { setIsComplete(false); setStepIndex(0); setCheckpointResult('idle') }}
+                  onClick={() => {
+                    setIsComplete(false)
+                    setStepIndex(0)
+                    setCheckpointResult('idle')
+                    setQuizPhase('lesson')
+                    setCurrentQ(0)
+                    setQuizAnswers([])
+                    setQuizScore(0)
+                  }}
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
                 >
                   Redo lesson
@@ -286,8 +373,247 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
                   Dashboard
                 </Link>
               </div>
+
+              {/* Max plan extras */}
+              {userTier === 'max' && (
+                <div className="flex flex-col sm:flex-row gap-2 justify-center mb-5">
+                  <a
+                    href={`/learn/${params.slug}/print`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold rounded-md hover:bg-violet-100 transition-colors"
+                  >
+                    📄 Download Lesson PDF
+                  </a>
+                  <Link
+                    href="/ask-creator"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold rounded-md hover:bg-violet-100 transition-colors"
+                  >
+                    ✉️ Ask the Creator
+                  </Link>
+                </div>
+              )}
               <div className="border-t border-slate-100 pt-6">
                 <ShareCard lessonTitle={lesson.title} steps={steps.length} xp={steps.length * 50} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Quiz screen
+  if (quizPhase === 'quiz') {
+    const quiz = LESSON_QUIZZES[params.slug] || []
+    const q = quiz[currentQ]
+    if (!q) return null
+    const isAnswered = quizAnswers[currentQ] !== null && quizAnswers[currentQ] !== undefined
+    const userAnswer = quizAnswers[currentQ]
+
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 pt-28 pb-16">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+            {/* Header */}
+            <div className="bg-slate-900 px-6 py-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Lesson Quiz</p>
+              <h2 className="text-lg font-bold text-white">{lesson.title}</h2>
+            </div>
+
+            {/* Progress */}
+            <div className="px-6 py-3 border-b border-slate-100">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                <span>Question {currentQ + 1} of {quiz.length}</span>
+                <span className="text-amber-600 font-medium">Need 3/{quiz.length} to pass</span>
+              </div>
+              <div className="flex gap-1.5">
+                {quiz.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 h-1.5 rounded-full transition-all ${
+                      i < currentQ
+                        ? (quizAnswers[i] === quiz[i].correctIndex ? 'bg-green-500' : 'bg-red-400')
+                        : i === currentQ
+                        ? 'bg-slate-800'
+                        : 'bg-slate-200'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Question */}
+              <p className="text-base font-semibold text-slate-900 mb-5">{q.question}</p>
+
+              {/* Options */}
+              <div className="space-y-2.5 mb-5">
+                {q.options.map((option, i) => {
+                  const isSelected = userAnswer === i
+                  const isCorrectOption = i === q.correctIndex
+                  let cls = 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 cursor-pointer'
+                  if (isAnswered) {
+                    if (isSelected && isCorrectOption) cls = 'border-green-500 bg-green-50 cursor-default'
+                    else if (isSelected && !isCorrectOption) cls = 'border-red-400 bg-red-50 cursor-default'
+                    else if (!isSelected && isCorrectOption) cls = 'border-green-400 bg-green-50 cursor-default'
+                    else cls = 'border-slate-200 bg-slate-50 opacity-50 cursor-default'
+                  }
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleSelectAnswer(i)}
+                      disabled={isAnswered}
+                      className={`w-full text-left px-4 py-3 rounded-md border text-sm transition-all flex items-start gap-3 ${cls}`}
+                    >
+                      <span className={`font-bold text-xs w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 ${
+                        isAnswered && isCorrectOption ? 'bg-green-500 text-white' :
+                        isAnswered && isSelected && !isCorrectOption ? 'bg-red-400 text-white' :
+                        'bg-slate-100 text-slate-500'
+                      }`}>
+                        {['A', 'B', 'C', 'D'][i]}
+                      </span>
+                      <span className={`leading-snug ${
+                        isAnswered && isCorrectOption ? 'text-green-800 font-medium' :
+                        isAnswered && isSelected && !isCorrectOption ? 'text-red-700' :
+                        isAnswered ? 'text-slate-400' :
+                        'text-slate-700'
+                      }`}>{option}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Explanation */}
+              {isAnswered && (
+                <div className={`p-4 rounded-md mb-5 border ${
+                  userAnswer === q.correctIndex
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-amber-50 border-amber-200'
+                }`}>
+                  <p className={`text-sm font-semibold mb-1 ${userAnswer === q.correctIndex ? 'text-green-800' : 'text-amber-800'}`}>
+                    {userAnswer === q.correctIndex ? '✓ Correct!' : '✗ Not quite — the correct answer is highlighted above.'}
+                  </p>
+                  <p className="text-sm text-slate-700 leading-relaxed">{q.explanation}</p>
+                </div>
+              )}
+
+              {/* Next button */}
+              {isAnswered && (
+                <button
+                  onClick={handleQuizNext}
+                  className="w-full py-3 bg-slate-900 text-white text-sm font-semibold rounded-md hover:bg-slate-800 transition-colors"
+                >
+                  {currentQ < quiz.length - 1 ? 'Next Question →' : 'See My Results'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Quiz fail screen
+  if (quizPhase === 'quiz-fail') {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 pt-28 pb-16">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden text-center">
+            <div className="bg-amber-50 border-b border-amber-200 px-6 py-8">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                📚
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 mb-2">Not quite there yet</h2>
+              <p className="text-slate-600 text-sm">
+                You scored <span className="font-bold text-slate-900">{quizScore} out of 5</span>. You need at least 3 to pass.
+              </p>
+            </div>
+            <div className="p-8">
+              <p className="text-slate-600 mb-6 text-sm leading-relaxed max-w-sm mx-auto">
+                No worries — this is how learning works. Review the lesson summary to lock in the key concepts, then take the quiz again.
+              </p>
+              <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                <button
+                  onClick={() => setQuizPhase('summary')}
+                  className="w-full py-3 bg-slate-900 text-white text-sm font-semibold rounded-md hover:bg-slate-800 transition-colors"
+                >
+                  📖 Review Lesson Summary
+                </button>
+                <button
+                  onClick={resetQuiz}
+                  className="w-full py-3 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                >
+                  Retry Quiz
+                </button>
+                <button
+                  onClick={() => { setQuizPhase('lesson'); setStepIndex(0); setCheckpointResult('idle') }}
+                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-2"
+                >
+                  ← Go back through the lesson
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Summary screen
+  if (quizPhase === 'summary') {
+    const summary = LESSON_SUMMARIES[params.slug]
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="mx-auto max-w-2xl px-4 pt-28 pb-16">
+          <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+            <div className="bg-slate-900 px-6 py-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Lesson Summary</p>
+              <h2 className="text-lg font-bold text-white">{lesson.title}</h2>
+            </div>
+            <div className="p-6">
+              {/* What you built */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-md">
+                <h3 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                  <span className="text-base">🔧</span> What you built
+                </h3>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  {summary?.whatYouBuilt || 'You completed this lesson and built a working project.'}
+                </p>
+              </div>
+
+              {/* Key concepts */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <span className="text-base">🧠</span> Key concepts
+                </h3>
+                <div className="space-y-2.5">
+                  {(summary?.keyConcepts || []).map((concept, i) => (
+                    <div key={i} className="p-3.5 bg-slate-50 rounded-md border border-slate-100">
+                      <p className="text-sm font-semibold text-slate-900">{concept.term}</p>
+                      <p className="text-sm text-slate-600 mt-0.5 leading-relaxed">{concept.definition}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="border-t border-slate-100 pt-5 flex flex-col gap-3">
+                <button
+                  onClick={resetQuiz}
+                  className="w-full py-3 bg-slate-900 text-white text-sm font-semibold rounded-md hover:bg-slate-800 transition-colors"
+                >
+                  Ready — Take the Quiz
+                </button>
+                <button
+                  onClick={() => setQuizPhase('quiz-fail')}
+                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors py-1.5 text-center"
+                >
+                  ← Back
+                </button>
               </div>
             </div>
           </div>
@@ -332,7 +658,32 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           </div>
 
           <h1 className="text-xl font-bold text-slate-900 mb-1">{lesson.title}</h1>
-          <p className="text-sm text-slate-500">{lesson.summary}</p>
+          <p className="text-sm text-slate-500 mb-3">{lesson.summary}</p>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Wokwi Simulator Button - Pro/Max only */}
+            {(userTier === 'pro' || userTier === 'max') && (
+              <a
+                href="https://wokwi.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all"
+              >
+                <Play className="w-4 h-4" /> Open Wokwi Simulator
+              </a>
+            )}
+
+            {/* Speed Run - Max only: skip to final step */}
+            {userTier === 'max' && quizPhase === 'lesson' && steps.length > 1 && stepIndex < steps.length - 1 && (
+              <button
+                onClick={() => { setStepIndex(steps.length - 1); setCheckpointResult('idle') }}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all"
+                title="Max plan: skip to the final step"
+              >
+                ⚡ Speed Run
+              </button>
+            )}
+          </div>
 
           {/* Step pills */}
           <div className="flex items-center gap-1.5 mt-4 flex-wrap">
@@ -503,13 +854,21 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           {/* Navigation */}
           {!isGuest && (
             <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-              <button
-                onClick={goBack}
-                disabled={stepIndex === 0}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goBack}
+                  disabled={stepIndex === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <button
+                  onClick={saveAndExit}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Save & Exit
+                </button>
+              </div>
               <button
                 onClick={goNext}
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
@@ -523,8 +882,8 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
           )}
         </div>
       </div>
-      <WokwiSimulator slug={params.slug} userTier={userTier} />
-      {!isGuest && <AiTutor />}
+      {/* AI Tutor - Pro/Max tier only */}
+      {(userTier === 'pro' || userTier === 'max') && <AiTutor />}
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </main>
   )

@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star, Settings, Code2 } from 'lucide-react'
+import { BookOpen, Flame, Trophy, ArrowRight, CheckCircle2, Clock, Zap, BarChart2, Star, Settings, Code2, Sparkles, Crown, Bot } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { getDashboardData } from '@/lib/learning'
-import DailyChallenge from '@/components/DailyChallenge'
+import WeeklyChallenge from '@/components/WeeklyChallenge'
 import BadgesDisplay from '@/components/BadgesDisplay'
+import AiTutor from '@/components/AiTutor'
+import BannerShop, { getSavedBanner, BANNER_OPTIONS } from '@/components/BannerShop'
+import ToastNotifications from '@/components/ToastNotifications'
+import PricingSection from '@/components/PricingSection'
 import { getRank, getNextRank, getProgressPercent } from '@/lib/xp'
 import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } from '@/types'
 
@@ -20,6 +24,20 @@ export default function Dashboard() {
   const [lessons, setLessons] = useState<Array<LearningLesson & { progress: LearningUserLessonProgress | null }>>([])
   const [streak, setStreak] = useState<LearningUserStreak | null>(null)
   const [xp, setXp] = useState(0)
+  const [bannerColor, setBannerColor] = useState('bg-slate-900')
+
+  useEffect(() => {
+    const saved = getSavedBanner()
+    const option = BANNER_OPTIONS.find(b => b.id === saved)
+    if (option) setBannerColor(option.color)
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail as string
+      const opt = BANNER_OPTIONS.find(b => b.id === id)
+      if (opt) setBannerColor(opt.color)
+    }
+    window.addEventListener('cp:banner-change', handler)
+    return () => window.removeEventListener('cp:banner-change', handler)
+  }, [])
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -36,10 +54,8 @@ export default function Dashboard() {
       setUserTier(profileResult.data?.subscription_tier || 'free')
       setLoading(false)
 
-      // Always show tour for the owner account; show once for new users
-      if (session.user.email === 'dominictocco20@gmail.com') {
-        setTimeout(() => window.dispatchEvent(new Event('cp:start-tour')), 1200)
-      } else if (!localStorage.getItem('cp_tour_done') && !localStorage.getItem('cp_tour_step')) {
+      // Show tour once for new users (respects dismissal)
+      if (!localStorage.getItem('cp_tour_done') && !localStorage.getItem('cp_tour_step')) {
         setTimeout(() => window.dispatchEvent(new Event('cp:start-tour')), 1200)
       }
     }
@@ -71,13 +87,28 @@ export default function Dashboard() {
       <div className="pt-20 pb-16">
 
         {/* Hero banner */}
-        <div className="bg-slate-900 px-4 py-10">
+        <div className={`${bannerColor} px-4 py-10 transition-colors duration-500`}>
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <p className="text-slate-400 text-sm mb-1">Good to see you back</p>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
                 {username}
               </h1>
+              {/* Rocket League-style Banner */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`px-3 py-1 rounded text-xs font-bold uppercase tracking-wider ${
+                  rank.name === 'Recruit' ? 'bg-slate-400 text-slate-900' :
+                  rank.name === 'Novice' ? 'bg-green-500 text-green-950' :
+                  rank.name === 'Builder' ? 'bg-blue-500 text-blue-950' :
+                  rank.name === 'Engineer' ? 'bg-purple-500 text-purple-950' :
+                  rank.name === 'Expert' ? 'bg-amber-500 text-amber-950' :
+                  rank.name === 'Master' ? 'bg-red-500 text-red-950' :
+                  'bg-slate-400 text-slate-900'
+                }`}>
+                  {rank.name}
+                </div>
+                <span className="text-xs text-slate-500">Tier {Math.floor(xp / 1000) + 1}</span>
+              </div>
               <div className="flex items-center gap-3 flex-wrap">
                 {currentStreak > 0 ? (
                   <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 rounded-md">
@@ -175,8 +206,8 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Daily challenge card */}
-              <DailyChallenge />
+              {/* Weekly project challenge */}
+              <WeeklyChallenge />
 
               {/* Completed lessons */}
               {completed.length > 0 && (
@@ -310,6 +341,28 @@ export default function Dashboard() {
               {/* Badges */}
               <BadgesDisplay />
 
+              {/* Banner Shop */}
+              <BannerShop xp={xp} onPurchase={(cost) => setXp(prev => prev - cost)} />
+
+              {/* Max plan features */}
+              {userTier === 'max' && (
+                <div className="bg-gradient-to-br from-violet-900 to-violet-800 rounded-md p-4 text-white">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-semibold">Max Plan Features</h3>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Link href="/ask-creator" className="flex items-center gap-2 text-xs text-violet-200 hover:text-white transition-colors py-1">
+                      ✉️ Ask the Creator
+                    </Link>
+                    <Link href="/referral" className="flex items-center gap-2 text-xs text-violet-200 hover:text-white transition-colors py-1">
+                      🎁 Refer friends — earn free months
+                    </Link>
+                    <p className="text-xs text-violet-300 pt-1">⚡ Speed Run available in every lesson</p>
+                  </div>
+                </div>
+              )}
+
               {/* Quick links */}
               <div className="bg-white border border-slate-200 rounded-md p-5">
                 <h3 className="font-semibold text-slate-900 mb-3">Quick links</h3>
@@ -337,6 +390,12 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Tutor - Pro/Max tier only */}
+      {(userTier === 'pro' || userTier === 'max') && <AiTutor />}
+
+      {/* Toast Notifications */}
+      <ToastNotifications />
     </main>
   )
 }
