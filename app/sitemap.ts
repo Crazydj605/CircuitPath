@@ -9,6 +9,9 @@ const STATIC_PATHS = [
   '/learn',
   '/paths',
   '/components',
+  '/boards',
+  '/simulator',
+  '/workshop',
   '/code',
   '/community',
   '/certificates',
@@ -32,6 +35,15 @@ const LESSON_SLUGS = [
   'analog-sensor',
 ]
 
+const BOARD_SLUGS = [
+  'uno-r3',
+  'nano',
+  'mega-2560',
+  'esp32-devkit',
+  'pi-pico',
+  'portenta-h7',
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
   const staticEntries = STATIC_PATHS.map((path) => ({
@@ -46,5 +58,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: 'monthly' as const,
     priority: 0.8,
   }))
-  return [...staticEntries, ...lessonEntries]
+  const boardEntries = BOARD_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/boards/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+  return [...staticEntries, ...lessonEntries, ...boardEntries]
 }

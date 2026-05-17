@@ -31,6 +31,7 @@ export default function Navbar() {
     { label: 'Code', href: '/code', tourId: 'nav-code' },
     { label: 'Community', href: '/community', tourId: 'nav-community' },
     { label: 'Components', href: '/components', tourId: undefined },
+    { label: 'Boards', href: '/boards', tourId: undefined },
     { label: 'Pricing', href: '/pricing', tourId: undefined },
   ]
 
