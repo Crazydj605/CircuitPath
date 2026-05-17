@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Search, ChevronDown, ChevronUp, Zap, Lightbulb, Waves, Circle, Sliders, Cog, Sun, Bell, Radio, Palette, Monitor, Thermometer, Tv, Zap as ZapIcon, Bolt, Battery, Plug, Fan, Wifi, CreditCard, Sprout, Target, Sparkles, Gamepad2, Calculator, Database, Clock, Wind } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import AffiliateLink from '@/components/AffiliateLink'
 
 type Component = {
   id: string
@@ -529,14 +530,13 @@ export default function ComponentsPage() {
                       </div>
                     )}
                     {comp.amazon_search && (
-                      <a
+                      <AffiliateLink
                         href={comp.amazon_search}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        product={`component:${comp.id}`}
                         className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors"
                       >
                         Buy on Amazon →
-                      </a>
+                      </AffiliateLink>
                     )}
                   </div>
                 )}

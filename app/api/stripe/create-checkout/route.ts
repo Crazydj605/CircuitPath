@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     payment_method_types: ['card'],
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${baseUrl}/dashboard?upgraded=1`,
+    success_url: `${baseUrl}/dashboard?upgraded=1&tier=${tier}&cycle=${billingCycle}`,
     cancel_url: `${baseUrl}/pricing`,
     metadata: { user_id: user.id, tier },
   })

@@ -1,37 +1,51 @@
 'use client'
 
 import { ShoppingCart } from 'lucide-react'
+import AffiliateLink from './AffiliateLink'
+
+// Direct product URLs (Amazon /dp/ASIN format) — these carry the
+// affiliate tag reliably. ASINs picked from long-running bestsellers.
+// If any go out of stock, swap to a current bestseller and keep the
+// `?tag=circuitpath-20` query string intact.
+const AFF_TAG = 'circuitpath-20'
+const productUrl = (asin: string) =>
+  `https://www.amazon.com/dp/${asin}?tag=${AFF_TAG}`
+const searchUrl = (query: string) =>
+  `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AFF_TAG}`
 
 const KIT_MAP: Record<string, { label: string; components: string; url: string }> = {
   'blink-led': {
     label: 'LED Blink Kit',
     components: '5mm LED, 220Ω resistor',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=5mm+LED+220+ohm+resistor+arduino+starter',
+    // EDGELEC 100pcs 5mm LED assorted — long-running bestseller
+    url: productUrl('B077XD7MJV'),
   },
   'button-input': {
     label: 'Button Input Kit',
     components: 'Tactile button, 10kΩ & 220Ω resistors, LED',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=arduino+pushbutton+10k+resistor+LED+kit',
+    url: searchUrl('arduino pushbutton 10k resistor LED kit'),
   },
   'pwm-fade-led': {
     label: 'PWM LED Kit',
     components: '5mm LED, 220Ω resistor',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=5mm+LED+220+ohm+resistor+arduino+PWM',
+    url: productUrl('B077XD7MJV'),
   },
   'servo-motor': {
     label: 'Servo Motor Kit',
-    components: 'SG90 micro servo motor',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=SG90+servo+motor+arduino',
+    components: 'SG90 micro servo motor (4-pack)',
+    // MIUZEI / TIANKONGRC SG90 4-pack — popular stable listing
+    url: searchUrl('SG90 servo motor arduino 4 pack'),
   },
   'analog-sensor': {
     label: 'Potentiometer Kit',
     components: '10kΩ potentiometer trimmer',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=10k+potentiometer+trimmer+arduino+kit',
+    url: searchUrl('10k potentiometer trimmer arduino kit'),
   },
   'serial-monitor': {
     label: 'Arduino Starter Kit',
     components: 'Arduino UNO + USB cable',
-    url: 'https://www.amazon.com/s?tag=circuitpath-20&k=Arduino+UNO+starter+kit+USB+cable',
+    // ELEGOO UNO R3 Starter Kit — top-selling Arduino starter kit for years
+    url: productUrl('B01D8KOZF4'),
   },
 }
 
@@ -48,14 +62,13 @@ export default function ComponentKitLink({ slug }: { slug: string }) {
           <span className="text-amber-700 truncate">{kit.components}</span>
         </div>
       </div>
-      <a
+      <AffiliateLink
         href={kit.url}
-        target="_blank"
-        rel="noopener noreferrer"
+        product={`kit:${slug}`}
         className="shrink-0 ml-3 px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded hover:bg-amber-600 transition-colors whitespace-nowrap"
       >
         Buy this kit →
-      </a>
+      </AffiliateLink>
     </div>
   )
 }

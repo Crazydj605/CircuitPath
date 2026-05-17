@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bot, AlertCircle, Lightbulb, CheckCircle2, Zap, Lock } from 'lucide-react'
 import Link from 'next/link'
-
-const FREE_LIMIT = 3
-const STORAGE_KEY = () => `cp_review_${new Date().toLocaleDateString('en-CA')}`
+import { supabase } from '@/lib/supabase'
 
 type ReviewResult = {
   summary: string
@@ -13,16 +11,49 @@ type ReviewResult = {
   improvements: string[]
 }
 
+type QuotaState = {
+  tier: 'guest' | 'free' | 'pro' | 'max'
+  used: number
+  limit: number
+  remaining: number
+}
+
+// `userTier` is no longer used for gating — server enforces the quota.
+// Kept in the prop signature for backwards compatibility with existing callers.
 export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: string }) {
+  void userTier
   const [code, setCode] = useState('')
   const [result, setResult] = useState<ReviewResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [quota, setQuota] = useState<QuotaState | null>(null)
+  const [needsAuth, setNeedsAuth] = useState(false)
 
-  const isPro = userTier === 'pro' || userTier === 'premium' || userTier === 'max'
-  const usedToday = parseInt(typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY()) || '0' : '0')
-  const reviewsLeft = isPro ? Infinity : Math.max(0, FREE_LIMIT - usedToday)
-  const isLimitReached = !isPro && usedToday >= FREE_LIMIT
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers: Record<string, string> = {}
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`
+      try {
+        const res = await fetch('/api/review-code', { headers })
+        const data = await res.json()
+        if (!cancelled) {
+          setQuota(data)
+          if (data.tier === 'guest') setNeedsAuth(true)
+        }
+      } catch {}
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const isMax = quota?.tier === 'max'
+  const isUnlimited = isMax || (quota?.limit !== undefined && !Number.isFinite(quota.limit))
+  const isLimitReached =
+    quota !== null && !isUnlimited && quota.tier !== 'guest' && quota.remaining === 0
 
   const handleReview = async () => {
     if (!code.trim() || loading || isLimitReached) return
@@ -31,11 +62,28 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
     setResult(null)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`
+
       const res = await fetch('/api/review-code', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ code }),
       })
+
+      if (res.status === 401) {
+        setNeedsAuth(true)
+        setError('Sign in to review code — free accounts get 3 reviews per day.')
+        return
+      }
+
+      if (res.status === 429) {
+        const data = await res.json()
+        setQuota({ tier: data.tier, used: data.used, limit: data.limit, remaining: 0 })
+        setError(data.error ?? 'Daily limit reached.')
+        return
+      }
 
       if (!res.ok) {
         setError('Review failed — please try again.')
@@ -44,11 +92,7 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
 
       const data = await res.json()
       setResult(data)
-
-      // Increment usage
-      if (!isPro) {
-        localStorage.setItem(STORAGE_KEY(), String(usedToday + 1))
-      }
+      if (data.quota) setQuota(data.quota)
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
@@ -69,17 +113,22 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
             <p className="text-xs text-slate-400">Paste your Arduino code — get instant feedback</p>
           </div>
         </div>
-        {!isPro && (
+        {quota && quota.tier !== 'guest' && !isUnlimited && (
           <span className="text-xs text-slate-500">
             {isLimitReached ? (
               <span className="flex items-center gap-1 text-amber-600 font-medium">
                 <Lock className="w-3 h-3" /> Limit reached
               </span>
             ) : (
-              <span className={reviewsLeft <= 1 ? 'text-amber-600 font-medium' : ''}>
-                {reviewsLeft} review{reviewsLeft !== 1 ? 's' : ''} left today
+              <span className={quota.remaining <= 1 ? 'text-amber-600 font-medium' : ''}>
+                {quota.remaining} review{quota.remaining !== 1 ? 's' : ''} left today
               </span>
             )}
+          </span>
+        )}
+        {isUnlimited && (
+          <span className="text-xs text-violet-600 font-medium">
+            {quota?.tier === 'max' ? 'Max' : 'Pro'} · unlimited
           </span>
         )}
       </div>
@@ -95,7 +144,21 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
         />
 
         {/* Actions */}
-        {isLimitReached ? (
+        {needsAuth ? (
+          <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-md">
+            <Bot className="w-4 h-4 text-slate-600 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-900">Sign in to review code</p>
+              <p className="text-xs text-slate-500">Free accounts get 3 reviews per day.</p>
+            </div>
+            <Link
+              href="/"
+              className="shrink-0 px-3 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded hover:bg-slate-800 transition-colors"
+            >
+              Sign up
+            </Link>
+          </div>
+        ) : isLimitReached ? (
           <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
             <Zap className="w-4 h-4 text-amber-500 shrink-0" />
             <div className="flex-1">
@@ -130,7 +193,7 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
         )}
 
         {/* Error */}
-        {error && (
+        {error && !needsAuth && !isLimitReached && (
           <p className="text-sm text-red-600 flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4 shrink-0" /> {error}
           </p>
@@ -139,7 +202,6 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
         {/* Results */}
         {result && (
           <div className="space-y-4 pt-2 border-t border-slate-100">
-            {/* Summary */}
             <div className="flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
               <div>
@@ -148,7 +210,6 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
               </div>
             </div>
 
-            {/* Issues */}
             {result.issues.length > 0 && (
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -173,7 +234,6 @@ export default function AiCodeReviewer({ userTier = 'free' }: { userTier?: strin
               </div>
             )}
 
-            {/* Improvements */}
             {result.improvements.length > 0 && (
               <div className="flex items-start gap-2.5">
                 <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />

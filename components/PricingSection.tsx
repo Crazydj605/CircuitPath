@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Check, ShieldCheck, Zap, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import AuthModal from './AuthModal'
+import { analytics } from '@/lib/analytics'
 
 // ─── Plan data ───────────────────────────────────────────────────
 const plans = {
@@ -18,6 +19,8 @@ const plans = {
     features: [
       '2 free beginner lessons',
       'Basic lesson tracking',
+      'AI Tutor — 5 messages/day',
+      'AI Code Reviewer — 3 reviews/day',
       'Community read access',
     ],
   },
@@ -31,12 +34,14 @@ const plans = {
     cta: 'Claim 40% Off — Upgrade to Pro',
     features: [
       'Full lesson library (all 6+ lessons)',
-      'Wokwi circuit simulator (visual learning)',
+      'Wokwi circuit simulator',
+      'AI Tutor — 50 messages/day',
+      'AI Code Reviewer — unlimited',
       'Step checkpoints + troubleshooting guides',
       'Progress tracking and streak tools',
       'Community challenges and leaderboard',
+      'Certificates at $1.99 each',
       'New lessons added every month',
-      'Priority support',
     ],
   },
   max: {
@@ -45,18 +50,14 @@ const plans = {
     regularYearly: 19.99,
     saleMonthly: 14.99,
     saleYearly: 11.99,
-    blurb: 'For power learners who want the deepest support.',
+    blurb: 'For power learners who want no limits.',
     cta: 'Upgrade to Max',
     features: [
       'Everything in Pro',
-      'Wokwi circuit simulator (visual learning)',
+      'AI Tutor — unlimited messages',
       'Free unlimited certificates',
-      'AI Tutor access (chat with AI expert)',
-      'Advanced project tracks',
-      'Deep-dive troubleshooting packs',
-      'Early access to new modules',
-      'Direct Q&A sessions',
-      'Exclusive Max-only badges',
+      'Skip-to-end "Speed Run" for any lesson',
+      'More Max perks coming soon',
     ],
   },
 }
@@ -83,6 +84,7 @@ export default function PricingSection() {
   }, [])
 
   const handleUpgrade = async (tier: 'pro' | 'max') => {
+    analytics.upgradeClicked(tier, typeof window !== 'undefined' ? window.location.pathname : 'unknown')
     if (!user) { setIsAuthOpen(true); return }
     try {
       const res = await fetch('/api/stripe/create-checkout', {

@@ -14,6 +14,7 @@ import BannerShop, { getSavedBanner, BANNER_OPTIONS } from '@/components/BannerS
 import ToastNotifications from '@/components/ToastNotifications'
 import PricingSection from '@/components/PricingSection'
 import { getRank, getNextRank, getProgressPercent } from '@/lib/xp'
+import { analytics } from '@/lib/analytics'
 import type { LearningLesson, LearningUserLessonProgress, LearningUserStreak } from '@/types'
 
 export default function Dashboard() {
@@ -37,6 +38,24 @@ export default function Dashboard() {
     }
     window.addEventListener('cp:banner-change', handler)
     return () => window.removeEventListener('cp:banner-change', handler)
+  }, [])
+
+  // Capture upgrade_completed when Stripe redirects back with ?upgraded=1&tier=...
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('upgraded') === '1') {
+      const tier = url.searchParams.get('tier')
+      const cycle = url.searchParams.get('cycle')
+      if (tier === 'pro' || tier === 'max') {
+        analytics.upgradeCompleted(tier, (cycle === 'monthly' ? 'monthly' : 'yearly'))
+      }
+      // Clean the URL so refreshing doesn't double-fire.
+      url.searchParams.delete('upgraded')
+      url.searchParams.delete('tier')
+      url.searchParams.delete('cycle')
+      window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''))
+    }
   }, [])
 
   useEffect(() => {

@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase'
 import confetti from 'canvas-confetti'
 import { getLessonBySlug, saveLessonProgress, submitStepCheck } from '@/lib/learning'
 import { LESSON_QUIZZES, LESSON_SUMMARIES } from '@/lib/quizzes'
+import { analytics } from '@/lib/analytics'
 import type { LearningLesson, LearningLessonStep, LearningUserLessonProgress } from '@/types'
 
 function difficultyStyle(d: string) {
@@ -80,6 +81,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
       if (data.progress?.status === 'completed') setIsComplete(true)
       setUserTier(profileResult.data?.subscription_tier || 'free')
       setLoading(false)
+      analytics.lessonStart(params.slug)
     }
     bootstrap()
   }, [params.slug, router])
@@ -128,6 +130,7 @@ export default function LessonPage({ params }: { params: { slug: string } }) {
     }))
     setIsComplete(true)
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#1e293b', '#f59e0b', '#10b981', '#3b82f6'] })
+    analytics.lessonComplete(lesson.slug, 50 * steps.length)
   }
 
   const saveAndExit = async () => {

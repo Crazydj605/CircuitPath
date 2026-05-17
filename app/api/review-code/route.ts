@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
+import { checkQuota, getBearerToken, getUserContext, logUsage, QUOTAS } from '@/lib/quotas'
 
 const GROK_API_KEY = process.env.GROK_API_KEY || ''
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
@@ -9,6 +10,31 @@ export async function POST(req: NextRequest) {
     const { code } = await req.json()
     if (!code || typeof code !== 'string' || code.trim().length < 5) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 })
+    }
+
+    const token = getBearerToken(req)
+    const userCtx = await getUserContext(token)
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: 'Sign in to review code.', requireAuth: true },
+        { status: 401 }
+      )
+    }
+
+    const quota = await checkQuota(userCtx.userId, userCtx.tier, 'review')
+    if (!quota.allowed) {
+      return NextResponse.json(
+        {
+          error: `You hit the daily code-review limit (${quota.limit}/day on ${userCtx.tier}). Upgrade for unlimited.`,
+          quotaBlocked: true,
+          tier: userCtx.tier,
+          used: quota.used,
+          limit: quota.limit,
+          resetAt: quota.resetAt,
+        },
+        { status: 429 }
+      )
     }
 
     const res = await axios.post(
@@ -48,9 +74,36 @@ ${code.slice(0, 3000)}
       throw new Error('Invalid response structure')
     }
 
-    return NextResponse.json(parsed)
+    await logUsage(userCtx.userId, 'review')
+
+    return NextResponse.json({
+      ...parsed,
+      quota: {
+        tier: userCtx.tier,
+        used: quota.used + 1,
+        limit: quota.limit,
+        remaining: Math.max(0, quota.limit - quota.used - 1),
+      },
+    })
   } catch (err) {
     console.error('review-code error:', err)
     return NextResponse.json({ error: 'Review failed — please try again' }, { status: 500 })
   }
+}
+
+// GET returns the current quota state so UI can show "3 left today".
+export async function GET(req: NextRequest) {
+  const token = getBearerToken(req)
+  const userCtx = await getUserContext(token)
+  if (!userCtx) {
+    return NextResponse.json({ tier: 'guest', limit: QUOTAS.free.review, used: 0, remaining: 0 })
+  }
+  const quota = await checkQuota(userCtx.userId, userCtx.tier, 'review')
+  return NextResponse.json({
+    tier: userCtx.tier,
+    used: quota.used,
+    limit: quota.limit,
+    remaining: quota.remaining,
+    resetAt: quota.resetAt,
+  })
 }

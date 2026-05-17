@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Mail, Lock, User, CheckCircle } from 'lucide-react'
 import { signUp, signIn, signInWithGoogle, signInWithGithub } from '@/lib/supabase'
+import { analytics } from '@/lib/analytics'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -44,6 +45,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           setIsSignUp(false)
           setError('An account with this email already exists. Please sign in.')
         } else {
+          analytics.signup('email')
           setSuccessMessage('Account created! Please check your email to confirm your account, then sign in.')
           // Clear password and switch to sign in after delay
           setPassword('')
